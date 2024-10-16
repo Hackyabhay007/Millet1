@@ -16,7 +16,7 @@ function Story() {
           <h1 className="text-5xl font-semibold">Our Story</h1>
           <p className="mt-4  text-gray-300 text-xl">
             This is a brief description of our story. We started with a vision to create quality products and provide exceptional service. 
-            Our journey has been filled with challenges and triumphs, and we are proud of what we ve achieved.
+            
           </p>
         </div>
       </div>
