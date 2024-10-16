@@ -7,7 +7,7 @@ function Footer() {
       <div className="flex flex-col md:flex-row gap-36 justify-center items-center mb-8">
         <div className="flex items-center">
           {/* Logo Placeholder */}
-          <img src="https://cdn.shopify.com/s/files/1/0653/2605/5654/files/logo_1_1_bb8fb2d6-681f-4ca4-aad5-5dbc7e581ce4.png?v=1710946898&width=180" alt="Logo" className="w-24 h-auto" />
+          <img src="https://gcdnb.pbrd.co/images/0Tt4D5KPyeNU.png?o=1" alt="Logo" className="w-24 h-auto" />
         </div>
         <div className="text-center mx-4">
           <h2 className="text-xl font-bold">“We are reviving the traditional ways of old Bharat”</h2>
