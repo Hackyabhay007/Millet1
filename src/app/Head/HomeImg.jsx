@@ -3,7 +3,7 @@ import React from 'react';
 // Functional Component
 function HomeImg() {
   return (
-    <div className="relative w-screen h-96 overflow-hidden"> 
+    <div className="relative font-afacadFlux w-screen h-96 overflow-hidden"> 
       <img 
         src="https://img.freepik.com/premium-vector/horizontal-banner-with-organic-food-composition-with-vegetables-plate-different-fresh-products-greenery-fruit-drinks-monochrome-vector-illustration-lineart-style_198278-7459.jpg" 
         alt="Organic Food"
@@ -13,6 +13,7 @@ function HomeImg() {
         {/* Optional overlay for text visibility */}
         
       </div>
+      
     </div>
   );
 }

@@ -84,7 +84,7 @@ function Shop() {
   };
 
   return (
-    <div className="grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-5 p-4">
+    <div className="grid grid-cols-2 font-afacadFlux gap-6 md:grid-cols-3 lg:grid-cols-5 p-4">
       {products.map((product) => (
         <div
           key={product.id}

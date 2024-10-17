@@ -2,8 +2,8 @@ import React from 'react';
 
 function AboutMain() {
     return (
-        <div className="bg-green-100 p-6 md:p-12">
-            <h1 className="text-3xl font-bold mb-4">Rewa State Farms</h1>
+        <div className="bg-green-100 font-afacadFlux p-6 md:p-12">
+            <h1 className="text-3xl font-bold  mb-4">Rewa State Farms</h1>
 
             <h2 className="text-2xl font-semibold mt-6">About Us</h2>
 

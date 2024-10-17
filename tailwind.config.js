@@ -9,6 +9,14 @@ module.exports = {
   ],
   theme: {
     extend: {
+      // Custom Fonts
+      fontFamily: {
+        babesNeue: ['"Babes Neue"', 'sans-serif'],
+        josefinSans: ['"Josefin Sans"', 'sans-serif'],
+        plusJakartaSans: ['"Plus Jakarta Sans"', 'sans-serif'],
+        afacadFlux: ['"Afacad Flux"', 'sans-serif'], // Adding Afacad Flux
+      },
+      // Existing Animation and Keyframes
       animation: {
         slideDown: 'slideDown 0.5s ease forwards',
         slideUp: 'slideUp 0.5s ease forwards',

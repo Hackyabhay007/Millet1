@@ -2,7 +2,7 @@ import React from "react";
 
 function Contact_Home() {
     return (
-        <div className="relative w-screen h-auto">
+        <div className="relative font-afacadFlux w-screen h-auto">
             <img
                 src="https://img.freepik.com/premium-vector/horizontal-background-with-border-consisted-fresh-organic-food_198278-4360.jpg"
                 alt="Contact Background"

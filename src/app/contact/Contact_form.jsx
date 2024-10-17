@@ -41,7 +41,7 @@ function Contact_form() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-700 flex flex-col items-center justify-center p-8">
+        <div className="min-h-screen font-afacadFlux bg-slate-700 flex flex-col items-center justify-center p-8">
             <h1 className="text-3xl font-semibold text-white mb-4">Contact Information</h1>
             <p className="text-lg text-gray-300 font-thin mb-6 text-center">
                 We’d love to hear about your experience with Rosier. <br />

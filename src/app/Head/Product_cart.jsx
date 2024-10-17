@@ -68,7 +68,7 @@ function ProductCart() {
   ];
 
   return (
-    <div className="overflow-hidden w-screen">
+    <div className="overflow-hidden w-screen font-afacadFlux">
         <h1 className='pl-8 py-10 text-3xl text-gray-600 font-bold'>Best Sellers</h1>
       <div className="flex  space-x-6 md:ml-5 md:pl-20 ml-5 pl-5 h-fit py-10  overflow-x-auto scrollbar-hide w-full  max-w-full flex-nowrap">
         {products.map((product) => (

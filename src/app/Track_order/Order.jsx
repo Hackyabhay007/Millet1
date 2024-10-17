@@ -14,7 +14,7 @@ function Order() {
     };
 
     return (
-        <div className="bg-white p-6 rounded-lg shadow-md  mx-auto w-screen  md:w-3/5 md:mt-20 h-auto"> {/* Changed max width to 80% */}
+        <div className="bg-white font-afacadFlux p-6 rounded-lg shadow-md  mx-auto w-screen  md:w-3/5 md:my-20 h-auto"> {/* Changed max width to 80% */}
             <div className="flex items-center mb-4">
                 <i className="ri-box-1-fill text-3xl mr-2"></i>
                 <h2 className="text-lg font-bold">Track Your Order</h2>

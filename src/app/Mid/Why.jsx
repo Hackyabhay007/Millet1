@@ -34,15 +34,15 @@ const loveImages = [
 
 function Why() {
   return (
-    <div className="">
+    <div className=" font-afacadFlux">
       {/* Top Image */}
       <img src="https://images.pexels.com/photos/248874/pexels-photo-248874.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" alt="Banner" className="w-screen h-96 object-cover object-center"/>
-
+      
       {/* Heading */}
       {/* Pink Background for PNG Images */}
       <div className="bg-pink-500 pt-10 pb-20">
         {/* Description */}
-        <h1 className="text-3xl font-semibold text-white text-center mb-16">Why Rosier</h1>
+        <h1 className="text-3xl font-bold text-white text-center mb-16">WHY REWA</h1>
         <div className="grid ml-28 grid-cols-2 md:grid-cols-5 gap-4">
           {/* Four different PNG Images */}
           {loveImages.map((imgSrc, index) => (

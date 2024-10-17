@@ -3,12 +3,12 @@ import Image from 'next/image'; // Import the Image component
 
 function Contact_location() {
     return (
-        <div className="w-screen bg-gray-300">
+        <div className="w-screen font-afacadFlux bg-gray-300">
             {/* Cards Section */}
             <div className="max-w-4xl mx-auto px-5 py-10 grid grid-cols-1 md:grid-cols-3 gap-6">
                 {/* Card 1: Contact Number */}
                 <div className="bg-white p-6 rounded-lg shadow-lg">
-                    <h2 className="text-xl font-semibold mb-2">Contact Number</h2>
+                    <h2 className="text-xl font-semibold mb-2">Contact  Number</h2>
                     <p className="text-gray-700">+91-9711580581</p>
                     <p className="text-gray-700">+91 120-4244430</p>
                 </div>

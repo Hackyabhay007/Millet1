@@ -35,7 +35,7 @@ const categories = [
 
 function ShopCatalog() {
   return (
-    <div className="container mx-auto p-4">
+    <div className="container font-afacadFlux mx-auto p-4">
       <h1 className="text-3xl text-pink-700 font-bold text-center mb-10">Shop by Categories</h1>
 
       {/* Desktop View with 3 Columns */}

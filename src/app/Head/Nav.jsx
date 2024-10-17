@@ -12,8 +12,8 @@ const Nav = () => {
   };
 
   return (
-    <nav className="bg-green-500 w-screen p-4">
-      <div className="container mx-auto flex justify-between items-center">
+    <nav className="bg-green-500 font-afacadFlux max-w-screen p-4">
+      <div className="container mx-auto flex  justify-between items-center">
         {/* Mobile Menu Icon */}
         <div className="md:hidden">
           <button onClick={toggleMenu} className="text-white text-2xl">
@@ -27,9 +27,9 @@ const Nav = () => {
 
         {/* Logo and Nav Links */}
         <div className="flex-1 flex justify-between items-center">
-          <div className="hidden md:flex items-center">
+        <Link href="/">  <div className="hidden md:flex items-center">
           <img src="https://gcdnb.pbrd.co/images/vJFrQP8Fgx9X.png?o=1" alt="Logo" className="h-16" />
-          </div>
+          </div></Link>
 
           {/* Centered Nav Links */}
           <div className="hidden md:flex items-center space-x-10 mx-auto text-lg font-bold">
@@ -52,14 +52,14 @@ const Nav = () => {
 
         {/* Right Icons */}
         <div className="flex space-x-10 font-thin text-2xl"> 
-          <a href="#" className="text-white">
+          <a href="#" className="text-white hover:scale-150 transition-transform duration-300 ">
             <i className="ri-search-line"></i> {/* Search Icon */}
           </a>
-          <a href="#" className="text-white">
+          <a href="#" className="text-white hover:scale-150 transition-transform duration-300 ">
             <i className="ri-user-line"></i> {/* Profile Icon */}
           </a>
-          <Link href="/Cart" className="text-white">
-            <i className="ri-shopping-cart-line"></i> {/* Cart Icon */}
+          <Link href="/Cart" className="text-white hover:scale-150 transition-transform duration-300 ">
+          <i class="ri-shopping-cart-2-line"></i> {/* Cart Icon */}
           </Link>
         </div>
       </div>

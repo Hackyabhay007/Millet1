@@ -2,7 +2,7 @@ import React from 'react';
 
 function Story() {
   return (
-    <div className="relative overflow-hidden my-5">
+    <div className="relative font-afacadFlux overflow-hidden my-5">
       {/* Full-width Image */}
       <img 
         src="https://images.pexels.com/photos/699422/pexels-photo-699422.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1" 
