@@ -41,7 +41,7 @@ const Nav = () => {
                 <a href="#" className="block px-4 py-2"><img src="https://gcdnb.pbrd.co/images/JF1ds3oEUDcn.jpg?o=1" alt="" className='hover:scale-105' /><p>Supper Millets</p></a>
                 <a href="#" className="block px-4 py-2"><img src="https://gcdnb.pbrd.co/images/OvPFuBiWMqoS.jpg?o=1" alt="" className='hover:scale-105' /><p>Millets Health Mix</p></a>
                 <a href="#" className="block px-4 py-2"><img src="https://gcdnb.pbrd.co/images/WSe7gVhHkgDh.jpg?o=1" alt="" className='hover:scale-105' /><p>Powder</p></a>
-               <Link href="/Shop"><button className='bg-rose-700 text-white h-10 px-5 transition-colors border-2 duration-300 hover:bg-white hover:border-2 hover:border-gray-700 hover:text-black'>More Product <i class="ri-arrow-right-line"></i></button></Link>
+               <Link href="/Shop"><button className='bg-rose-700 text-white h-10 px-5 transition-colors border-2 duration-300 hover:bg-white hover:border-2 hover:border-gray-700 hover:text-black'>More Product <i className="ri-arrow-right-line"></i></button></Link>
               </div>
             </div>
            <Link href="/About_us"> <p  className="text-white hover:text-gray-200">ABOUT US</p></Link>
@@ -51,16 +51,16 @@ const Nav = () => {
         </div>
 
         {/* Right Icons */}
-        <div className="flex space-x-10 font-thin text-2xl">
+        <div className="flex space-x-10 font-thin text-2xl"> 
           <a href="#" className="text-white">
             <i className="ri-search-line"></i> {/* Search Icon */}
           </a>
           <a href="#" className="text-white">
             <i className="ri-user-line"></i> {/* Profile Icon */}
           </a>
-          <a href="#" className="text-white">
+          <Link href="/Cart" className="text-white">
             <i className="ri-shopping-cart-line"></i> {/* Cart Icon */}
-          </a>
+          </Link>
         </div>
       </div>
 
@@ -68,18 +68,14 @@ const Nav = () => {
       <div className={`md:hidden fixed top-16 right-0 z-50 bg-green-500 h-1/2 w-screen transform transition-transform duration-300 ease-in-out ${isMenuOpen ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col items-center h-full text-xl font-semibold justify-center">
           <img src="https://gcdnb.pbrd.co/images/vJFrQP8Fgx9X.png?o=1" alt="Logo" className="h-14 mb-2 rounded-sm" />
-          <a href="#" className="text-white py-2">Home</a>
+          <Link href="/" className="text-white py-2">Home</Link>
           <div className="relative group">
-            <button className="text-white py-2">Shop</button>
-            <div className="absolute  hidden group-hover:block bg-white text-black mt-1 rounded shadow-lg">
-              <a href="#" className="block px-4 py-2">Product 1</a>
-              <a href="#" className="block px-4 py-2">Product 2</a>
-              <a href="#" className="block px-4 py-2">Product 3</a>
-            </div>
+           <Link href="/Shop"><button className="text-white py-2">Shop</button></Link>
+            
           </div>
-          <a href="#" className="text-white py-2">About Us</a>
-          <a href="#" className="text-white py-2">Track Order</a>
-          <a href="#" className="text-white py-2">Contact Us</a>
+          <Link href="/About_us" className="text-white py-2">About Us</Link>
+          <a href="/Track_order" className="text-white py-2">Track Order</a>
+          <a href="/contact" className="text-white py-2">Contact Us</a>
         </div>
       </div>
     </nav>

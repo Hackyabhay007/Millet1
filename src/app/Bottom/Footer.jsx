@@ -66,9 +66,9 @@ function Footer() {
         <div className='text-4xl'>
           <h3 className="font-bold mb-2 text-xl">Follow Us</h3>
           <ul className='flex flex-col md:flex-row gap-5'>
-            <li><i class="ri-facebook-box-line hover:text-green-500"></i></li>
-            <li><i class="ri-instagram-line hover:text-green-500"></i></li>
-            <li><i class="ri-youtube-line hover:text-green-500"></i></li>
+            <li><i className="ri-facebook-box-line hover:text-green-500"></i></li>
+            <li><i className="ri-instagram-line hover:text-green-500"></i></li>
+            <li><i className="ri-youtube-line hover:text-green-500"></i></li>
           </ul>
         </div>
 
