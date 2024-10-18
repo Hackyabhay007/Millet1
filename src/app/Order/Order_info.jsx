@@ -1,4 +1,4 @@
-"use client"; // Ensure this is a client-side component
+'use client'; // Ensure this is a client-side component
 
 import React, { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation'; // Updated for App Router
