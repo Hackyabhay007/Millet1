@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from "next/link";
 
 function Footer() {
   return (
@@ -7,7 +8,7 @@ function Footer() {
       <div className="flex flex-col md:flex-row gap-10 justify-center items-center mb-8">
         <div className="flex items-center">
           {/* Logo Placeholder */}
-          <img src="https://gcdnb.pbrd.co/images/0Tt4D5KPyeNU.png?o=1" alt="Logo" className="w-28 h-auto" />
+         <Link href="/"><img src="https://gcdnb.pbrd.co/images/0Tt4D5KPyeNU.png?o=1" alt="Logo" className="w-28 h-auto" /></Link>
         </div>
         <div className="text-center mx-4">
           <h2 className="text-xl font-bold">“We are reviving the traditional ways of old Bharat”</h2>

@@ -16,20 +16,23 @@ module.exports = {
         plusJakartaSans: ['"Plus Jakarta Sans"', 'sans-serif'],
         afacadFlux: ['"Afacad Flux"', 'sans-serif'], // Adding Afacad Flux
       },
-      // Existing Animation and Keyframes
+      // Animation for 3D flip effect
       animation: {
-        slideDown: 'slideDown 0.5s ease forwards',
-        slideUp: 'slideUp 0.5s ease forwards',
+        flip: 'flip 0.8s ease-in-out',
       },
       keyframes: {
-        slideDown: {
-          '0%': { transform: 'translateY(-20px)', opacity: '0' },
-          '100%': { transform: 'translateY(0)', opacity: '1' },
+        flip: {
+          '0%': { transform: 'rotateY(0deg)' },
+          '100%': { transform: 'rotateY(180deg)' },
         },
-        slideUp: {
-          '0%': { transform: 'translateY(0)', opacity: '1' },
-          '100%': { transform: 'translateY(-20px)', opacity: '0' },
-        },
+      },
+      spacing: {
+        '300': '300px',
+        '200': '200px',
+      },
+      // Extend to include perspective
+      perspective: {
+        '1000': '1000px',
       },
     },
   },

@@ -4,7 +4,7 @@ const reviews = [
   {
     id: 1,
     rating: '⭐⭐⭐⭐⭐',
-    text: "Rosier has changed my life for the better. I can't recommend it enough!",
+    text: "Rewa has changed my life for the better. I can't recommend it enough!",
   },
   {
     id: 2,
@@ -14,7 +14,7 @@ const reviews = [
   {
     id: 3,
     rating: '⭐⭐⭐⭐⭐',
-    text: "Rosier has changed my life for the better. I can't recommend it enough!", 
+    text: "Rewa product has changed my life for the better. I can't recommend it enough!", 
   },
   {
     id: 4,

@@ -44,7 +44,7 @@ function Contact_form() {
         <div className="min-h-screen font-afacadFlux bg-slate-700 flex flex-col items-center justify-center p-8">
             <h1 className="text-3xl font-semibold text-white mb-4">Contact Information</h1>
             <p className="text-lg text-gray-300 font-thin mb-6 text-center">
-                We’d love to hear about your experience with Rosier. <br />
+                We’d love to hear about your experience with Rewa. <br />
                 Please get in touch with any comments, suggestions, or questions you might have.
             </p>
             <form onSubmit={handleSubmit} className="bg-transparent p-6 rounded-none w-full max-w-lg">

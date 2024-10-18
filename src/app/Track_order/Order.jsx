@@ -53,7 +53,7 @@ function Order() {
                 />
             </div>
             <button
-                className="w-full bg-blue-600 text-white h-10 rounded-lg"
+                className="w-full hover:bg-green-500 bg-blue-600 text-white h-10 rounded-lg"
                 onClick={() => console.log(`Searching for ${inputValue} with type: ${searchType}`)}
             >
                 Submit

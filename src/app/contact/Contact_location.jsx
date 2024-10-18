@@ -9,22 +9,24 @@ function Contact_location() {
                 {/* Card 1: Contact Number */}
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                     <h2 className="text-xl font-semibold mb-2">Contact  Number</h2>
-                    <p className="text-gray-700">+91-9711580581</p>
                     <p className="text-gray-700">+91 120-4244430</p>
+                    
                 </div>
 
                 {/* Card 2: Location */}
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                     <h2 className="text-xl font-semibold mb-2">Location</h2>
                     <p className="text-gray-700">
-                        Village - Gesupur Janubi, Kithore, Mawana, Meerut, Uttar Pradesh-250406
+                    Near ajigarha bypass ,Satna road, Rewa
+                    Rewa, Madhya Pradesh - 486001, India
                     </p>
                 </div>
 
                 {/* Card 3: Email */}
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                     <h2 className="text-xl font-semibold mb-2">Email</h2>
-                    <p className="text-gray-700">care@rosierfoods.com</p>
+                    <p className="text-gray-700">
+                    rewastatefarms@gmail.com</p>
                 </div>
             </div>
 
