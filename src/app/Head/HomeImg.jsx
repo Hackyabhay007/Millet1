@@ -11,7 +11,7 @@ function HomeImg() {
   // Array of images for the carousel
   const images = [
     "https://cdn.farmjournal.com/s3fs-public/styles/840x600/public/2024-07/organic.png",
-    "https://media.istockphoto.com/id/870915532/photo/man-holding-crate-ob-fresh-vegetables.jpg?s=612x612&w=0&k=20&c=k2dXOI-wxUy7lX77Pm90vU6TJXmAAv5VtK60ZZHIyCA=",
+    "https://regencyhealthcare.in/wp-content/uploads/2019/09/03_09_Sept_blog.jpg",
     "https://blog.nasm.org/hubfs/food-restriction-header.jpg",
     "https://img.freepik.com/premium-photo/happy-indian-farmer-family-smiling-green-field-bright-sunny-day_1076263-3881.jpg",
   ];
