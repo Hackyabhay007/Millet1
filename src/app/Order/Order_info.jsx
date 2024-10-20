@@ -53,7 +53,7 @@ function Order_info() {
   };
 
   return (
-    <div className="container mx-auto p-6">
+    <div className="container font-afacadFlux mx-auto p-6">
       <h1 className="text-3xl font-bold mb-6">Order Summary</h1>
 
       {/* Display product details */}

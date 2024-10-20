@@ -1,39 +1,71 @@
 "use client";
-import React, { useState, useContext } from 'react';
-import { CartContext } from '@/Context/CartContext'; // Import the CartContext
-
-// Product list
-const products = [
-  { id: 1, name: 'Organic Apple', price: 250, category: 'Fruits', onSale: true, inStock: true, image: 'https://gcdnb.pbrd.co/images/rGq54oVxCeXf.jpg?o=1' },
-  { id: 2, name: 'Organic Banana', price: 150, category: 'Fruits', onSale: false, inStock: true, image: 'https://gcdnb.pbrd.co/images/JF1ds3oEUDcn.jpg?o=1' },
-  { id: 3, name: 'Organic Carrot', price: 200, category: 'Vegetables', onSale: true, inStock: false, image: 'https://gcdnb.pbrd.co/images/OvPFuBiWMqoS.jpg?o=1' },
-  { id: 4, name: 'Organic Broccoli', price: 300, category: 'Vegetables', onSale: false, inStock: true, image: 'https://gcdnb.pbrd.co/images/WSe7gVhHkgDh.jpg?o=1' },
-  { id: 5, name: 'Organic Tomato', price: 180, category: 'Vegetables', onSale: true, inStock: true, image: 'https://gcdnb.pbrd.co/images/Nk2Ag27XZQcw.jpg?o=1' },
-  { id: 6, name: 'Organic Spinach', price: 120, category: 'Vegetables', onSale: false, inStock: true, image: 'https://gcdnb.pbrd.co/images/oCHDV8Vs98Be.jpg?o=1' },
-  { id: 7, name: 'Organic Potato', price: 50, category: 'Vegetables', onSale: false, inStock: false, image: 'https://gcdnb.pbrd.co/images/K27d9xHI1JJ5.jpg?o=1' },
-  { id: 8, name: 'Organic Cucumber', price: 100, category: 'Vegetables', onSale: true, inStock: true, image: 'https://gcdnb.pbrd.co/images/3AmDLfUR6RAs.jpg?o=1' },
-  { id: 9, name: 'Organic Bell Pepper', price: 200, category: 'Vegetables', onSale: false, inStock: true, image: 'https://gcdnb.pbrd.co/images/3AmDLfUR6RAs.jpg?o=1' },
-  { id: 10, name: 'Organic Zucchini', price: 150, category: 'Vegetables', onSale: false, inStock: false, image: 'https://gcdnb.pbrd.co/images/Nk2Ag27XZQcw.jpg?o=1' },
-];
+import React, { useState, useEffect, useContext } from 'react';
+import { db } from '../firebase';
+import { collection, getDocs } from 'firebase/firestore';
+import { useRouter } from 'next/navigation'; // Import from next/navigation
+import { CartContext } from '@/Context/CartContext';
 
 function Shop() {
-  const { addToCart } = useContext(CartContext); // Access the addToCart function from CartContext
+  const { addToCart } = useContext(CartContext);
+  const [products, setProducts] = useState([]);
   const [clickedItemId, setClickedItemId] = useState(null);
-  const [filters, setFilters] = useState({
-    onSale: false,
-    inStock: false,
-    category: '',
-  });
+  const [filters, setFilters] = useState({ onSale: false, inStock: false, category: '' });
+  const [categories, setCategories] = useState([]); // State for categories
+  const [tags, setTags] = useState([]); // State for tags
   const [sortOrder, setSortOrder] = useState('');
+  const router = useRouter(); // Initialize the router from next/navigation
 
-  // Handler for adding item to the cart
+  // Fetch products from Firestore
+  useEffect(() => {
+    const fetchProducts = async () => {
+      const productsCollection = collection(db, 'products');
+      const productSnapshot = await getDocs(productsCollection);
+      const productList = productSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setProducts(productList);
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Fetch categories from Firestore
+  useEffect(() => {
+    const fetchCategories = async () => {
+      const categoriesCollection = collection(db, 'categories');
+      const categorySnapshot = await getDocs(categoriesCollection);
+      const categoryList = categorySnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setCategories(categoryList); // Set categories state
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Fetch tags from Firestore
+  useEffect(() => {
+    const fetchTags = async () => {
+      const tagsCollection = collection(db, 'tags');
+      const tagSnapshot = await getDocs(tagsCollection);
+      const tagList = tagSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data(),
+      }));
+      setTags(tagList); // Set tags state
+    };
+
+    fetchTags();
+  }, []);
+
   const handleAddToCart = (product) => {
     addToCart(product);
     setClickedItemId(product.id);
     setTimeout(() => setClickedItemId(null), 500);
   };
 
-  // Handle filter changes
   const handleFilterChange = (e) => {
     const { name, value, type, checked } = e.target;
     setFilters((prevFilters) => ({
@@ -42,37 +74,40 @@ function Shop() {
     }));
   };
 
-  // Handle reset filter
   const handleResetFilter = () => {
     setFilters({ onSale: false, inStock: false, category: '' });
     setSortOrder('');
   };
 
-  // Handle sorting
   const handleSortChange = (e) => {
     setSortOrder(e.target.value);
   };
 
-  // Apply filters and sorting to products
+  const handleProductClick = (productId) => {
+    router.push(`/Shop/${productId}`); // Navigate to the product details page
+  };
+
   const filteredProducts = products
     .filter((product) => {
+      // Filter by onSale status
       if (filters.onSale && !product.onSale) return false;
-      if (filters.inStock && !product.inStock) return false;
-      if (filters.category && product.category !== filters.category) return false;
+      // Filter by inStock status
+      if (filters.inStock && product.stockQuantity <= 0) return false;
+      // Filter by selected category
+      if (filters.category && !product.categories.includes(filters.category)) return false;
       return true;
     })
     .sort((a, b) => {
+      // Sort products by price
       if (sortOrder === 'low-to-high') return a.price - b.price;
       if (sortOrder === 'high-to-low') return b.price - a.price;
       return 0;
     });
 
   return (
-    <div className="flex flex-col md:flex-row gap-4 p-4">
-      {/* Filter Sidebar (Left on Desktop, Top on Mobile) */}
+    <div className="flex flex-col font-afacadFlux md:flex-row gap-4 p-4">
       <div className="w-full md:w-1/4 bg-white shadow-md p-4 rounded-lg">
         <h2 className="font-bold text-lg mb-4">Filters</h2>
-
         <div className="mb-4">
           <label className="block font-semibold mb-2">Product Status</label>
           <div className="flex items-center">
@@ -96,7 +131,6 @@ function Shop() {
             <label>In Stock</label>
           </div>
         </div>
-
         <div className="mb-4">
           <label className="block font-semibold mb-2">Categories</label>
           <select
@@ -106,11 +140,11 @@ function Shop() {
             className="w-full border-gray-300 rounded p-2"
           >
             <option value="">All Categories</option>
-            <option value="Fruits">Organic Fruits</option>
-            <option value="Vegetables">Organic Vegetables</option>
+            {categories.map(category => (
+              <option key={category.id} value={category.id}>{category.name}</option>
+            ))}
           </select>
         </div>
-
         <button
           onClick={handleResetFilter}
           className="bg-red-500 text-white w-full py-2 rounded mt-4"
@@ -119,15 +153,13 @@ function Shop() {
         </button>
       </div>
 
-      {/* Product Listing */}
       <div className="flex-grow">
-        {/* Sort Dropdown (Top of the Products) */}
         <div className="mb-4">
           <label className="block font-semibold mb-2">Sort by Price</label>
           <select
             value={sortOrder}
             onChange={handleSortChange}
-            className="w-40 border  border-gray-500 rounded p-2"
+            className="w-40 border border-gray-500 rounded p-2"
           >
             <option value="">Select</option>
             <option value="low-to-high">Low to High</option>
@@ -140,24 +172,25 @@ function Shop() {
             <div
               key={product.id}
               className="flex flex-col bg-yellow-50 rounded-xl shadow-lg overflow-hidden"
+              onClick={() => handleProductClick(product.id)} // Navigate on product click
             >
-              {/* Image Section */}
               <div className="h-52 hover:scale-105 transition-transform duration-300 w-full overflow-hidden">
                 <img
-                  src={product.image}
-                  alt={product.name}
+                  src={product.mainImage}
+                  alt={product.productName}
                   className="w-full h-full object-cover rounded-t-xl"
                 />
               </div>
-
-              {/* Product Details */}
               <div className="flex flex-col flex-grow p-0 text-center">
-                <p className="text-lg font-semibold">{product.name}</p>
+                <p className="text-lg font-semibold">{product.productName}</p>
                 <p className="text-gray-500 font-semibold pb-2">Price: ₹{product.price}</p>
+                <p className="text-gray-500 pb-2">{product.description}</p>
 
-                {/* Add to Cart Button with Animation */}
                 <button
-                  onClick={() => handleAddToCart(product)}
+                  onClick={(e) => {
+                    e.stopPropagation(); // Prevent click event from bubbling up
+                    handleAddToCart(product);
+                  }}
                   className={`mt-auto text-white px-4 py-2 font-semibold rounded transition-transform ${
                     clickedItemId === product.id
                       ? 'bg-yellow-400 transform scale-110 duration-500'

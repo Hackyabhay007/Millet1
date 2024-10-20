@@ -53,7 +53,7 @@ function History() {
   }, []);
 
   return (
-    <div className="max-w-7xl mx-auto p-6 bg-white rounded-lg shadow-md">
+    <div className="max-w-7xl font-afacadFlux mx-auto p-6 bg-white rounded-lg shadow-md">
       <h2 className="text-3xl font-semibold mb-6">Order History</h2>
 
       {orderHistory.length === 0 ? (

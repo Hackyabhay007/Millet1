@@ -54,7 +54,7 @@ function Cart() {
 
   if (cartItems.length === 0) {
     return (
-      <p className="min-h-fit text-center py-40 text-xl font-bold bg-gray-300">
+      <p className="min-h-fit text-center py-40 text-xl font-bold font-afacadFlux bg-gray-300">
         Your cart is empty! <i className="ri-box-3-line"></i><br /><br />
         <Link href="/Shop" className="bg-rose-600 text-white py-1 px-4 text-lg hover:bg-rose-700">GO TO SHOP <i className="ri-store-2-line font-thin text-xl"></i></Link>
       </p>

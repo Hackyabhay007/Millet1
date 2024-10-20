@@ -1,7 +1,8 @@
-"use client"
+"use client";  // Ensure it's client-side for Next.js
+
 import React, { useState } from 'react';
-import { database } from '../firebase';
-import { ref, set } from "firebase/database";
+import { db } from '../firebase';  // Import Firestore instance
+import { collection, addDoc } from 'firebase/firestore';  // Firestore functions
 
 function Contact_form() {
     const [formData, setFormData] = useState({
@@ -13,6 +14,7 @@ function Contact_form() {
     const [loading, setLoading] = useState(false);
     const [messageSent, setMessageSent] = useState(false);
 
+    // Handle input changes
     const handleChange = (e) => {
         const { name, value } = e.target;
         setFormData({
@@ -21,23 +23,36 @@ function Contact_form() {
         });
     };
 
-    const handleSubmit = (e) => {
+    // Handle form submission
+    const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
-        const newRef = ref(database, 'contacts/' + formData.name);
-        set(newRef, formData)
-            .then(() => {
-                setLoading(false);
-                setMessageSent(true);
-                setFormData({ name: '', email: '', phone: '', comments: '' }); // Clear the form after submit
-                setTimeout(() => {
-                    setMessageSent(false); // Hide the message after 3 seconds
-                }, 3000);
-            })
-            .catch((error) => {
-                console.error("Error sending message: ", error);
-                setLoading(false);
+
+        try {
+            // Add form data to Firestore under "contacts" collection
+            const docRef = await addDoc(collection(db, "contacts"), {
+                name: formData.name,
+                email: formData.email,
+                phone: formData.phone,
+                comments: formData.comments,
+                submittedAt: new Date()  // Add timestamp
             });
+
+            console.log("Document written with ID: ", docRef.id);
+            setLoading(false);
+            setMessageSent(true);
+
+            // Clear the form after submission
+            setFormData({ name: '', email: '', phone: '', comments: '' });
+
+            // Hide the message after 3 seconds
+            setTimeout(() => {
+                setMessageSent(false);
+            }, 3000);
+        } catch (error) {
+            console.error("Error sending message: ", error);
+            setLoading(false);
+        }
     };
 
     return (
@@ -86,7 +101,7 @@ function Contact_form() {
                     type="submit"
                     className="w-full bg-green-500 text-white font-semibold py-2 rounded-none hover:bg-white hover:text-black transition duration-100"
                 >
-                    Send
+                    {loading ? "Sending..." : "Send"}
                 </button>
             </form>
 
