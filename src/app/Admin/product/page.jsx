@@ -71,14 +71,8 @@ const CreateProduct = () => {
                 price: parseFloat(price),
                 stock: parseInt(stockQuantity, 10),
                 description,
-                categories: selectedCategories.map(id => {
-                    const category = categories.find(cat => cat.id === id);
-                    return category ? category.name : null; // Save category name
-                }).filter(name => name), // Filter out any null values
-                tags: selectedTags.map(id => {
-                    const tag = tags.find(tag => tag.id === id);
-                    return tag ? tag.name : null; // Save tag name
-                }).filter(name => name),
+                categories: selectedCategories, // Save category IDs
+                tags: selectedTags, // Save tag IDs
                 mainImage, // Save main image
                 additionalImages, // Save additional images
             };
@@ -97,6 +91,8 @@ const CreateProduct = () => {
 
             // Refresh the product list after adding/updating a product
             fetchProducts();
+            fetchCategories(); // Refresh categories
+            fetchTags(); // Refresh tags
             setShowForm(false); // Hide form after submission
         } catch (error) {
             console.error("Error adding/updating product: ", error);
@@ -186,7 +182,7 @@ const CreateProduct = () => {
 
     return (
         <AdminLayout>
-            <div className="p-4 font-afacadFlux">
+            <div className="p-4 bg-gray-200  font-afacadFlux">
                 <button 
                     onClick={() => setShowForm(!showForm)} 
                     className="mb-4 bg-blue-500 text-white px-4 py-2  hover:bg-blue-600 transition duration-200"
@@ -237,155 +233,138 @@ const CreateProduct = () => {
                                 id="description" 
                                 value={description} 
                                 onChange={(e) => setDescription(e.target.value)} 
+                                required
                                 className="mt-2 w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                             />
                         </div>
 
-                        {/* Main Image Upload Section */}
+                        {/* Category Selection */}
                         <div className="mb-4">
-                            <label className="block text-gray-700" htmlFor="mainImage">Main Image (Required)</label>
-                            <input 
-                                type="file" 
-                                onChange={handleMainImageChange}
-                                accept="image/*" // Accept image files only
-                                required // Main image is required
-                                className="mt-2 w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            {mainImage && <img src={mainImage} alt="Main Product" className="w-40 h-40 object-cover mt-2" />}
-                        </div>
-
-                        {/* Additional Images Upload Section */}
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Additional Images (Optional, up to 3)</label>
-                            <input 
-                                type="file" 
-                                onChange={handleAdditionalImagesChange}
-                                accept="image/*" // Accept image files only
-                                multiple // Allow multiple file uploads
-                                className="mt-2 w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            />
-                            <div className="mt-2 flex flex-wrap">
-                                {additionalImages.map((image, index) => (
-                                    <img key={index} src={image} alt={`Additional Image ${index + 1}`} className="w-20 h-20 object-cover mr-2" />
-                                ))}
-                            </div>
-                        </div>
-
-                        {/* Categories Checkbox Section */}
-                        <div className="mb-4">
-                            <label className="block text-gray-700">Categories</label>
+                            <label className="block text-gray-700" htmlFor="categories">Categories</label>
                             {categories.map(category => (
-                                <div key={category.id} className="flex items-center">
-                                    <input 
-                                        type="checkbox" 
-                                        id={category.id} 
-                                        value={category.id} 
-                                        checked={selectedCategories.includes(category.id)} 
-                                        onChange={handleCategoryChange} 
-                                        className="mr-2" 
-                                    />
-                                    <label htmlFor={category.id}>{category.name}</label>
+                                <div key={category.id}>
+                                    <label>
+                                        <input 
+                                            type="checkbox" 
+                                            value={category.id} 
+                                            checked={selectedCategories.includes(category.id)}
+                                            onChange={handleCategoryChange}
+                                        />
+                                        {category.name}
+                                    </label>
                                 </div>
                             ))}
                         </div>
 
-                        {/* Tags Checkbox Section */}
+                        {/* Tag Selection */}
                         <div className="mb-4">
-                            <label className="block text-gray-700">Tags</label>
+                            <label className="block text-gray-700" htmlFor="tags">Tags</label>
                             {tags.map(tag => (
-                                <div key={tag.id} className="flex items-center">
-                                    <input 
-                                        type="checkbox" 
-                                        id={tag.id} 
-                                        value={tag.id} 
-                                        checked={selectedTags.includes(tag.id)} 
-                                        onChange={handleTagChange} 
-                                        className="mr-2" 
-                                    />
-                                    <label htmlFor={tag.id}>{tag.name}</label>
+                                <div key={tag.id}>
+                                    <label>
+                                        <input 
+                                            type="checkbox" 
+                                            value={tag.id} 
+                                            checked={selectedTags.includes(tag.id)}
+                                            onChange={handleTagChange}
+                                        />
+                                        {tag.name}
+                                    </label>
                                 </div>
+                            ))}
+                        </div>
+
+                        {/* Main Image */}
+                        <div className="mb-4">
+                            <label className="block text-gray-700" htmlFor="mainImage">Main Image</label>
+                            <input 
+                                type="file" 
+                                id="mainImage" 
+                                accept="image/*" 
+                                onChange={handleMainImageChange} 
+                                required={!mainImage}
+                                className="mt-2 w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            {mainImage && <img src={mainImage} alt="Main Preview" className="mt-2 h-24" />}
+                        </div>
+
+                        {/* Additional Images */}
+                        <div className="mb-4">
+                            <label className="block text-gray-700" htmlFor="additionalImages">Additional Images (Max 3)</label>
+                            <input 
+                                type="file" 
+                                id="additionalImages" 
+                                accept="image/*" 
+                                multiple 
+                                onChange={handleAdditionalImagesChange}
+                                className="mt-2 w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                            {additionalImages.length > 0 && additionalImages.map((image, index) => (
+                                <img key={index} src={image} alt={`Preview ${index}`} className="mt-2 h-24" />
                             ))}
                         </div>
 
                         <button 
                             type="submit" 
-                            className="w-full bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition duration-200"
+                            className="bg-blue-500 text-white px-4 py-2 mt-4 hover:bg-blue-600 transition duration-200"
                         >
                             {editProductId ? 'Update Product' : 'Create Product'}
                         </button>
                     </form>
                 )}
 
-                {/* Display Existing Products */}
-                <h2 className="text-2xl font-bold mb-4">Existing Products</h2>
-                <div className="bg-gray-100 p-4 rounded-lg shadow-md">
-                    <ul className="space-y-2">
-                        {products.length > 0 ? (
-                            products.map(product => (
-                                <li key={product.id} className="border-b py-2 flex justify-between items-center">
-                                    <div className="flex-1">
-                                        <h3 className="font-bold">{product.name}</h3>
-                                        <p>Price: ₹{product.price.toLocaleString()}</p>
-                                        <p>Stock: {product.stock}</p>
-                                        <p>{product.description}</p>
-                                        
-                                        {/* Display Categories */}
-                                        <p>Categories: {
-                                            (product.categories || []).map(catId => {
-                                                const category = categories.find(cat => cat.id === catId);
-                                                return category ? category.name : null;
-                                            }).filter(name => name).join(', ')
-                                        }</p>
+                {/* Product List */}
+                <h2 className="text-2xl font-bold mb-4 mt-8">Product List</h2>
+                {products.length === 0 ? (
+                    <p>No products available.</p>
+                ) : (
+                    <ul className="space-y-4">
+                        {products.map(product => (
+                            <li key={product.id} className="bg-white p-4 rounded shadow-md">
+                                <h3 className="text-xl font-bold">{product.name}</h3>
+                                <p>Price: ${product.price}</p>
+                                <p>Stock: {product.stock}</p>
+                                <p>Description: {product.description}</p>
 
-                                        {/* Display Tags */}
-                                        <p>Tags: {
-                                            (product.tags || []).map(tagId => {
-                                                const tag = tags.find(tag => tag.id === tagId);
-                                                return tag ? tag.name : null;
-                                            }).filter(name => name).join(', ')
-                                        }</p>
+                                {/* Display Categories */}
+                                <p>Categories: {
+                                    (product.categories || []).map(catId => {
+                                        const category = categories.find(cat => cat.id === catId);
+                                        return category ? category.name : null;
+                                    }).filter(name => name).join(', ')
+                                }</p>
 
-                                        {/* Display Main Image */}
-                                        {product.mainImage && (
-                                            <div className="mt-2">
-                                                <h4 className="font-semibold">Main Image:</h4>
-                                                <img src={product.mainImage} alt="Main Product" className="w-40 h-40 object-cover mr-2 mb-2" />
-                                            </div>
-                                        )}
+                                {/* Display Tags */}
+                                <p>Tags: {
+                                    (product.tags || []).map(tagId => {
+                                        const tag = tags.find(tag => tag.id === tagId);
+                                        return tag ? tag.name : null;
+                                    }).filter(name => name).join(', ')
+                                }</p>
 
-                                        {/* Display Additional Images */}
-                                        {product.additionalImages && product.additionalImages.length > 0 && (
-                                            <div className="mt-2">
-                                                <h4 className="font-semibold">Additional Images:</h4>
-                                                <div className="flex flex-wrap">
-                                                    {product.additionalImages.map((img, index) => (
-                                                        <img key={index} src={img} alt={`Additional Image ${index + 1}`} className="w-20 h-20 object-cover mr-2" />
-                                                    ))}
-                                                </div>
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="flex space-x-2">
-                                        <button 
-                                            onClick={() => handleEdit(product)} // Call edit function
-                                            className="bg-yellow-500 text-white px-3 py-1 rounded hover:bg-yellow-600 transition duration-200"
-                                        >
-                                            Edit
-                                        </button>
-                                        <button 
-                                            onClick={() => handleDelete(product.id)} // Call delete function
-                                            className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition duration-200"
-                                        >
-                                            Delete
-                                        </button>
-                                    </div>
-                                </li>
-                            ))
-                        ) : (
-                            <p>No products available.</p>
-                        )}
+                                {product.mainImage && <img src={product.mainImage} alt="Main Product" className="mt-2 h-24" />}
+                                {product.additionalImages && product.additionalImages.map((img, idx) => (
+                                    <img key={idx} src={img} alt={`Additional Image ${idx}`} className="mt-2 h-24" />
+                                ))}
+
+                                <div className="mt-4 flex space-x-2">
+                                    <button 
+                                        onClick={() => handleEdit(product)} 
+                                        className="bg-yellow-500 text-white px-4 py-2 hover:bg-yellow-600 transition duration-200"
+                                    >
+                                        Edit
+                                    </button>
+                                    <button 
+                                        onClick={() => handleDelete(product.id)} 
+                                        className="bg-red-500 text-white px-4 py-2 hover:bg-red-600 transition duration-200"
+                                    >
+                                        Delete
+                                    </button>
+                                </div>
+                            </li>
+                        ))}
                     </ul>
-                </div>
+                )}
             </div>
         </AdminLayout>
     );

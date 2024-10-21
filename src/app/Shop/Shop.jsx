@@ -1,7 +1,7 @@
 "use client";
 import React, { useState, useEffect, useContext } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, getDocs, query, where } from 'firebase/firestore'; // Import additional Firestore methods
 import { useRouter } from 'next/navigation'; // Import from next/navigation
 import { CartContext } from '@/Context/CartContext';
 
@@ -104,6 +104,22 @@ function Shop() {
       return 0;
     });
 
+  // Fetch related products based on selected category
+  const fetchRelatedProducts = async (categoryId) => {
+    if (!categoryId) return []; // No category selected, return empty array
+
+    const relatedProductsQuery = query(
+      collection(db, 'products'),
+      where('categories', 'array-contains', categoryId) // Filter by category ID
+    );
+
+    const relatedSnapshot = await getDocs(relatedProductsQuery);
+    return relatedSnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
+  };
+
   return (
     <div className="flex flex-col font-afacadFlux md:flex-row gap-4 p-4">
       <div className="w-full md:w-1/4 bg-white shadow-md p-4 rounded-lg">
@@ -136,7 +152,12 @@ function Shop() {
           <select
             name="category"
             value={filters.category}
-            onChange={handleFilterChange}
+            onChange={async (e) => {
+              const selectedCategoryId = e.target.value;
+              handleFilterChange(e); // Update filters state
+              const relatedProducts = await fetchRelatedProducts(selectedCategoryId); // Fetch related products
+              console.log('Related Products:', relatedProducts); // Log related products for debugging
+            }}
             className="w-full border-gray-300 rounded p-2"
           >
             <option value="">All Categories</option>
@@ -171,7 +192,7 @@ function Shop() {
           {filteredProducts.map((product) => (
             <div
               key={product.id}
-              className="flex flex-col bg-yellow-50 rounded-xl shadow-lg overflow-hidden"
+              className="flex flex-col bg-yellow-100 cursor-pointer rounded-xl shadow shadow-gray-500 overflow-hidden"
               onClick={() => handleProductClick(product.id)} // Navigate on product click
             >
               <div className="h-52 hover:scale-105 transition-transform duration-300 w-full overflow-hidden">
@@ -182,7 +203,7 @@ function Shop() {
                 />
               </div>
               <div className="flex flex-col flex-grow p-0 text-center">
-                <p className="text-lg font-semibold">{product.productName}</p>
+                <p className="text-lg font-semibold">{product.name}</p>
                 <p className="text-gray-500 font-semibold pb-2">Price: ₹{product.price}</p>
                 <p className="text-gray-500 pb-2">{product.description}</p>
 
@@ -191,7 +212,7 @@ function Shop() {
                     e.stopPropagation(); // Prevent click event from bubbling up
                     handleAddToCart(product);
                   }}
-                  className={`mt-auto text-white px-4 py-2 font-semibold rounded transition-transform ${
+                  className={`mt-auto text-white px-4 py-2 font-semibold rounded-b transition-transform ${
                     clickedItemId === product.id
                       ? 'bg-yellow-400 transform scale-110 duration-500'
                       : 'bg-green-600'

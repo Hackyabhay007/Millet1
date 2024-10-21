@@ -1,156 +1,86 @@
 "use client";
-import Link from 'next/link';
-import React, { useState, useEffect, useRef } from 'react';
-import 'remixicon/fonts/remixicon.css';
+import React, { useEffect, useState } from 'react';
+import { db } from '../firebase'; // Adjust the import path to your Firebase setup
+import { collection, getDocs } from 'firebase/firestore';
 
-// Functional Component
 function HomeImg() {
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [isManual, setIsManual] = useState(false); // To detect manual interaction
-  const autoScrollRef = useRef();
+  const [heroSections, setHeroSections] = useState([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
 
-  // Array of images for the carousel
-  const images = [
-    "https://cdn.farmjournal.com/s3fs-public/styles/840x600/public/2024-07/organic.png",
-    "https://regencyhealthcare.in/wp-content/uploads/2019/09/03_09_Sept_blog.jpg",
-    "https://blog.nasm.org/hubfs/food-restriction-header.jpg",
-    "https://img.freepik.com/premium-photo/happy-indian-farmer-family-smiling-green-field-bright-sunny-day_1076263-3881.jpg",
-  ];
-
-  // Array of text and button labels for the text carousel
-  const carouselContent = [
-    {
-      heading: "Rewa",
-      tagline: "Bringing Nature’s Goodness to Your Home",
-      buttonText: "Know More",
-      buttonLink: "/About_us",
-      icon: "ri-plant-line"
-    },
-    {
-      heading: "Diwali Offer",
-      tagline: "Celebrate with Organic Delights!",
-      buttonText: "Explore Offers",
-      buttonLink: "/Offers",
-      icon: "ri-gift-line"
-    },
-    {
-      heading: "Fresh from the Farm",
-      tagline: "Taste the Purity of Organic Farming",
-      buttonText: "Shop Now",
-      buttonLink: "/Shop",
-      icon: "ri-leaf-line"
-    },
-    {
-      heading: "Sustainable Living",
-      tagline: "Nourish Your Body and the Planet",
-      buttonText: "Learn More",
-      buttonLink: "/Sustainability",
-      icon: "ri-earth-line"
-    }
-  ];
-
-  // Auto-scroll functionality
   useEffect(() => {
-    // If manual interaction occurs, stop auto-scroll for a moment
-    if (!isManual) {
-      autoScrollRef.current = setInterval(() => {
-        nextImage();
-      }, 1000); // Auto scroll every 3 seconds
-    }
+    const fetchHeroSections = async () => {
+      const querySnapshot = await getDocs(collection(db, 'heroSections'));
+      const sections = querySnapshot.docs.map(doc => doc.data());
+      setHeroSections(sections);
+    };
 
-    return () => clearInterval(autoScrollRef.current); // Cleanup on component unmount or manual scroll
-  }, [isManual]);
+    fetchHeroSections();
+  }, []);
 
-  // Debounce manual scrolling for 5 seconds before reactivating auto-scroll
   useEffect(() => {
-    if (isManual) {
-      const manualScrollTimeout = setTimeout(() => {
-        setIsManual(false); // Re-enable auto-scroll after 1 seconds
-      }, 1000);
-      return () => clearTimeout(manualScrollTimeout); // Cleanup on unmount
-    }
-  }, [isManual]);
+    // Auto-scroll functionality
+    const intervalId = setInterval(() => {
+      handleNext();
+    }, 3000); // Change every 3 seconds
 
-  // Handle manual image and text navigation
-  const prevImage = () => {
-    setIsManual(true); // Mark interaction as manual
-    const newIndex = (currentImageIndex - 1 + images.length) % images.length;
-    setCurrentImageIndex(newIndex);
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [heroSections]);
+
+  const handleNext = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % heroSections.length);
   };
 
-  const nextImage = () => {
-    setIsManual(true); // Mark interaction as manual
-    const newIndex = (currentImageIndex + 1) % images.length;
-    setCurrentImageIndex(newIndex);
+  const handlePrev = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + heroSections.length) % heroSections.length);
   };
+
+  if (!heroSections.length) return <div>Loading...</div>;
+
+  const { title, subheading, buttonName, link, image, background } = heroSections[currentIndex];
 
   return (
-    <div className="relative flex flex-col gap-5 md:gap-0 md:flex-row items-center justify-between h-[32rem] font-afacadFlux w-screen p-4 bg-green-200">
-      {/* Left Section: Carousel button, Company Name, Tagline, and Button */}
-      <div className="w-full md:w-1/2 flex flex-col justify-center items-center text-center  md:text-left relative">
-        <h1 className="text-4xl md:text-5xl font-bold text-green-600">
-          {carouselContent[currentImageIndex].heading}
-        </h1>
-        <p className="mt-4 text-lg md:text-2xl text-gray-700">
-          {carouselContent[currentImageIndex].tagline}{' '}
-          <i className={carouselContent[currentImageIndex].icon}></i>
-        </p>
-        <Link href={carouselContent[currentImageIndex].buttonLink}>
-          <button className="mt-6 px-6 py-3 bg-green-600 text-white shadow-lg hover:bg-green-900 transition duration-100">
-            {carouselContent[currentImageIndex].buttonText}
-          </button>
-        </Link>
+    <div 
+      className={`flex font-afacadFlux flex-col md:flex-row items-center h-screen relative ${background}`}  // Dynamically apply background class
+    >
+      {/* Left Section: Title, Subheading, and Button */}
+      <div className="flex flex-col justify-center items-center text-center md:text-left w-full md:w-1/2 z-10 p-4">
+        <h1 className="text-3xl md:text-5xl font-bold text-green-600">{title}</h1>
+        <p className="mt-4 text-lg md:text-xl text-green-500">{subheading}</p>
+        <a 
+          href={link} 
+          className="mt-6 px-6 py-3 bg-green-600 text-white shadow-lg hover:bg-green-900 transition duration-100"
+        >
+          {buttonName}
+        </a>
       </div>
 
-      {/* Right Section: Image Carousel */}
-      <div className="relative w-full md:w-1/2 h-full flex items-center justify-center overflow-hidden">
-        <div className="w-full h-full relative">
-          <div
-            className="absolute w-full h-full flex transform transition-transform duration-500 ease-in-out"
-            style={{
-              transform: `translateX(-${currentImageIndex * 100}%)`,
-            }}
-          >
-            {/* Render the images */}
-            {images.map((image, index) => (
-              <img
-                key={index}
-                src={image}
-                alt={`Slide ${index}`}
-                className="w-full h-full object-cover rounded-sm"
-                style={{ minWidth: "100%" }}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* Image index indicators */}
-        <div className="absolute bottom-4 flex space-x-2">
-          {images.map((_, index) => (
-            <div
+      {/* Right Section: Image */}
+      <div className="w-full h-auto md:w-1/2 flex justify-center overflow-hidden relative z-0">
+        <div className="flex transition-transform duration-500 ease-in-out" 
+             style={{ transform: `translateX(-${currentIndex * 100}%)` }}>
+          {heroSections.map((section, index) => (
+            <img
               key={index}
-              className={`w-3 h-3 rounded-full ${
-                index === currentImageIndex ? 'bg-green-500' : 'bg-gray-400'
-              }`}
-            ></div>
+              src={section.image}
+              alt={section.title}
+              className="w-fit h-full object-cover  flex-shrink-0"
+            />
           ))}
         </div>
       </div>
 
-      {/* Carousel Buttons */}
-      <div className="absolute inset-0 flex justify-between  items-center px-5">
-        {/* Left Button */}
-        <button
-          className="text-gray-900 text-xl font-bold border border-gray-600 backdrop-blur-sm bg-white/20 p-3 rounded-full hover:bg-green-100 transition duration-300"
-          onClick={prevImage}
+      {/* Carousel Navigation Buttons */}
+      <div className="absolute top-1/2 left-0 right-0 flex justify-between items-center transform -translate-y-1/2 z-20 px-4">
+        <button 
+          onClick={handlePrev} 
+          className="border border-gray-700 bg-white/20 p-3 rounded-full hover:bg-gray-300 transition duration-200 mx-4"
         >
           &lt;
         </button>
-
-        {/* Right Button */}
-        <button
-          className="text-gray-900 text-xl font-bold border border-gray-600 backdrop-blur-sm bg-white/20 p-3 rounded-full hover:bg-green-100 transition duration-300"
-          onClick={nextImage}
+        <button 
+          onClick={handleNext} 
+          className="border border-gray-700 bg-white/20 p-3 rounded-full hover:bg-gray-300 transition duration-200 mx-4"
         >
           &gt;
         </button>

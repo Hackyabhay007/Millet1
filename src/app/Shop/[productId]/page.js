@@ -13,6 +13,8 @@ const ProductDetails = ({ params }) => {
   const [loading, setLoading] = useState(true); // Loading state
   const [categories, setCategories] = useState([]); // State to hold category names
   const [tags, setTags] = useState([]); // State to hold tag names
+  const [relatedProducts, setRelatedProducts] = useState([]); // State for related products
+  const [loadingRelated, setLoadingRelated] = useState(true); // Loading state for related products
   const [error, setError] = useState(null); // State for error handling
   const router = useRouter();
   const { addToCart } = useContext(CartContext); // Add to cart from context
@@ -30,6 +32,7 @@ const ProductDetails = ({ params }) => {
           const productData = productSnap.data();
           setProduct(productData);
           await fetchCategoryAndTagNames(productData); // Fetch categories and tags names
+          await fetchRelatedProducts(productData); // Fetch related products
         } else {
           setError('No such product found!');
         }
@@ -68,6 +71,32 @@ const ProductDetails = ({ params }) => {
     }
   };
 
+  // Function to fetch related products based on matching categories
+  const fetchRelatedProducts = async (productData) => {
+    try {
+      if (productData.categories && productData.categories.length > 0) {
+        setLoadingRelated(true); // Start loading related products
+        const relatedQuery = query(
+          collection(db, 'products'),
+          where('categories', 'array-contains-any', productData.categories), // Match at least one category
+          where('id', '!=', productId) // Exclude the current product
+        );
+
+        const relatedSnapshot = await getDocs(relatedQuery);
+        const relatedProductsData = relatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+        setRelatedProducts(relatedProductsData.length > 0 ? relatedProductsData : []); // Set related products if found
+      } else {
+        setRelatedProducts([]); // No categories to find related products
+      }
+    } catch (error) {
+      console.error('Error fetching related products:', error);
+      setRelatedProducts([]); // Ensure related products array is empty on error
+    } finally {
+      setLoadingRelated(false); // Stop loading related products
+    }
+  };
+
   // Handle adding to cart
   const handleAddToCart = () => {
     if (product) {
@@ -78,6 +107,10 @@ const ProductDetails = ({ params }) => {
   const handleOrderNow = () => {
     // Placeholder for order logic (could navigate to checkout or open modal)
     console.log('Order now clicked');
+  };
+
+  const handleRelatedProductClick = (id) => {
+    router.push(`/shop/${id}`); // Navigate to the related product details page
   };
 
   if (loading) {
@@ -96,7 +129,8 @@ const ProductDetails = ({ params }) => {
     <div className="p-6 font-afacadFlux bg-green-400">
       {/* Back Button */}
       <button onClick={() => router.back()} className="text-blue-black flex bg-white p-4 mb-4 rounded-sm">
-      <i class="ri-arrow-left-line"></i><p className='hidden md:block'> Back to Shop</p>
+        <i className="ri-arrow-left-line"></i>
+        <p className='hidden md:block'> Back to Shop</p>
       </button>
 
       <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
@@ -123,8 +157,6 @@ const ProductDetails = ({ params }) => {
           </div>
         )}
 
-   
-
         {/* Product Information */}
         <div className="text-center mb-6">
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
@@ -133,35 +165,67 @@ const ProductDetails = ({ params }) => {
           </p>
           <p className="text-gray-600 mb-4">{product.description}</p>
 
-               {/* Categories and Tags Section */}
-        <div className="flex flex-col items-center mb-4  pt-4">
-          {categories.length > 0 && (
-            <p className="text-sm text-gray-500">
-              <span className="font-semibold">Categories:</span> {categories.join(', ')}
-            </p>
-          )}
-          {tags.length > 0 && (
-            <p className="text-sm text-gray-500">
-              <span className="font-semibold">Tags:</span> {tags.join(', ')}
-            </p>
-          )}
-        </div>
+          {/* Categories and Tags Section */}
+          <div className="flex flex-col items-center mb-4 pt-4">
+            {categories.length > 0 && (
+              <p className="text-sm text-gray-500">
+                <span className="font-semibold">Categories:</span> {categories.join(', ')}
+              </p>
+            )}
+            {tags.length > 0 && (
+              <p className="text-sm text-gray-500">
+                <span className="font-semibold">Tags:</span> {tags.join(', ')}
+              </p>
+            )}
+          </div>
 
           {/* Buttons */}
           <div className="flex justify-center gap-4 mb-6">
             <button
               onClick={handleAddToCart}
-              className="bg-green-600 text-white py-2 px-4  shadow-lg hover:bg-green-500 transition duration-200"
+              className="bg-green-600 text-white py-2 px-4 shadow-lg hover:bg-green-500 transition duration-200"
             >
               Add to Cart
             </button>
             <button
               onClick={handleOrderNow}
-              className="bg-blue-600 text-white py-2 px-4  shadow-lg hover:bg-blue-500 transition duration-200"
+              className="bg-blue-600 text-white py-2 px-4 shadow-lg hover:bg-blue-500 transition duration-200"
             >
               Order Now
             </button>
           </div>
+        </div>
+
+        {/* Related Products Section */}
+        <div className="mb-6">
+          <h2 className="text-2xl font-semibold mb-4">Related Products</h2>
+          {loadingRelated ? (
+            <p>Loading related products...</p>
+          ) : (
+            <>
+              {relatedProducts.length > 0 ? (
+                <div className="flex overflow-x-scroll">
+                  {relatedProducts.map((relatedProduct) => (
+                    <div
+                      key={relatedProduct.id}
+                      className="flex-shrink-0 w-40 p-2 bg-white border rounded-lg mr-4 cursor-pointer"
+                      onClick={() => handleRelatedProductClick(relatedProduct.id)} // Navigate to related product
+                    >
+                      <img
+                        src={relatedProduct.mainImage}
+                        alt={relatedProduct.name}
+                        className="w-full h-32 object-cover rounded-md mb-2"
+                      />
+                      <h3 className="text-lg font-semibold">{relatedProduct.name}</h3>
+                      <p className="text-sm text-gray-600">₹{relatedProduct.price}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <p className="text-gray-500">No related products found.</p> // Message for no related products
+              )}
+            </>
+          )}
         </div>
       </div>
     </div>
