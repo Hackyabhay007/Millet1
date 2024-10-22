@@ -1,38 +1,54 @@
-"use client"; // Required for Next.js to indicate this is a client component
+"use client";
 
-import React, { useEffect, useState, useContext } from 'react';
-import { useRouter } from 'next/navigation'; // For client-side navigation
-import { db } from '@/app/firebase'; // Import Firebase
+import React, { useEffect, useState, useContext, useRef } from 'react';
+import { useRouter } from 'next/navigation';
+import { db } from '@/app/firebase';
 import { doc, getDoc, getDocs, collection, query, where } from 'firebase/firestore';
-import { CartContext } from '@/Context/CartContext'; // Import CartContext
-import 'remixicon/fonts/remixicon.css'; // Correct import statement
+import { ChevronLeft, ChevronRight } from 'lucide-react';
+import 'remixicon/fonts/remixicon.css';
+import { CartContext } from '@/Context/CartContext';
 
 const ProductDetails = ({ params }) => {
-  const { productId } = params; // Get the dynamic productId from the URL
-  const [product, setProduct] = useState(null); // State to hold the product
-  const [loading, setLoading] = useState(true); // Loading state
-  const [categories, setCategories] = useState([]); // State to hold category names
-  const [tags, setTags] = useState([]); // State to hold tag names
-  const [relatedProducts, setRelatedProducts] = useState([]); // State for related products
-  const [loadingRelated, setLoadingRelated] = useState(true); // Loading state for related products
-  const [error, setError] = useState(null); // State for error handling
+  const { productId } = params;
+  const [product, setProduct] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState([]);
+  const [tags, setTags] = useState([]);
+  const [relatedProducts, setRelatedProducts] = useState([]);
+  const [loadingRelated, setLoadingRelated] = useState(true);
+  const [error, setError] = useState(null);
+  const [selectedImage, setSelectedImage] = useState('');
   const router = useRouter();
-  const { addToCart } = useContext(CartContext); // Add to cart from context
+  const { addToCart } = useContext(CartContext);
+  const scrollContainer = useRef(null);
 
-  // Fetch product details from Firestore
+  const scroll = (direction) => {
+    if (scrollContainer.current) {
+      const scrollAmount = 300;
+      const newScrollPosition = 
+        scrollContainer.current.scrollLeft + (direction === 'left' ? -scrollAmount : scrollAmount);
+      
+      scrollContainer.current.scrollTo({
+        left: newScrollPosition,
+        behavior: 'smooth'
+      });
+    }
+  };
+
   useEffect(() => {
     const fetchProductDetails = async () => {
-      if (!productId) return; // Avoid fetching if productId is missing
+      if (!productId) return;
 
       try {
-        const productRef = doc(db, 'products', productId); // Get document reference
+        const productRef = doc(db, 'products', productId);
         const productSnap = await getDoc(productRef);
 
         if (productSnap.exists()) {
           const productData = productSnap.data();
           setProduct(productData);
-          await fetchCategoryAndTagNames(productData); // Fetch categories and tags names
-          await fetchRelatedProducts(productData); // Fetch related products
+          setSelectedImage(productData.mainImage);
+          await fetchCategoryAndTagNames(productData);
+          await fetchRelatedProducts(productData);
         } else {
           setError('No such product found!');
         }
@@ -47,22 +63,19 @@ const ProductDetails = ({ params }) => {
     fetchProductDetails();
   }, [productId]);
 
-  // Function to fetch category and tag names
   const fetchCategoryAndTagNames = async (productData) => {
     try {
-      // Fetch category names based on IDs in productData.categories
       if (Array.isArray(productData.categories) && productData.categories.length > 0) {
         const categoryQuery = query(collection(db, 'categories'), where('__name__', 'in', productData.categories));
         const categorySnapshot = await getDocs(categoryQuery);
-        const fetchedCategoryNames = categorySnapshot.docs.map(doc => doc.data().name); // Assuming each category document has a 'name' field
+        const fetchedCategoryNames = categorySnapshot.docs.map(doc => doc.data().name);
         setCategories(fetchedCategoryNames);
       }
 
-      // Fetch tag names based on IDs in productData.tags
       if (Array.isArray(productData.tags) && productData.tags.length > 0) {
         const tagQuery = query(collection(db, 'tags'), where('__name__', 'in', productData.tags));
         const tagSnapshot = await getDocs(tagQuery);
-        const fetchedTagNames = tagSnapshot.docs.map(doc => doc.data().name); // Assuming each tag document has a 'name' field
+        const fetchedTagNames = tagSnapshot.docs.map(doc => doc.data().name);
         setTags(fetchedTagNames);
       }
     } catch (error) {
@@ -71,107 +84,112 @@ const ProductDetails = ({ params }) => {
     }
   };
 
-  // Function to fetch related products based on matching categories
   const fetchRelatedProducts = async (productData) => {
     try {
       if (productData.categories && productData.categories.length > 0) {
-        setLoadingRelated(true); // Start loading related products
-  
-        // Fetch products that match at least one category
+        setLoadingRelated(true);
         const relatedQuery = query(
           collection(db, 'products'),
-          where('categories', 'array-contains-any', productData.categories) // Match at least one category
+          where('categories', 'array-contains-any', productData.categories)
         );
   
         const relatedSnapshot = await getDocs(relatedQuery);
         const relatedProductsData = relatedSnapshot.docs
           .map(doc => ({ id: doc.id, ...doc.data() }))
-          .filter(product => product.id !== productData.id); // Filter out the current product in the code
+          .filter(product => product.id !== productData.id);
   
-        console.log("Related products:", relatedProductsData);
-        setRelatedProducts(relatedProductsData.length > 0 ? relatedProductsData : []); // Set related products if found
+        setRelatedProducts(relatedProductsData.length > 0 ? relatedProductsData : []);
       } else {
-        setRelatedProducts([]); // No categories to find related products
+        setRelatedProducts([]);
       }
     } catch (error) {
       console.error('Error fetching related products:', error);
-      setRelatedProducts([]); // Ensure related products array is empty on error
+      setRelatedProducts([]);
     } finally {
-      setLoadingRelated(false); // Stop loading related products
+      setLoadingRelated(false);
     }
   };
-  
 
-  // Handle adding to cart
   const handleAddToCart = () => {
     if (product) {
-      addToCart(product); // Add the product to the cart
+      addToCart(product);
     }
   };
 
   const handleOrderNow = () => {
-    // Placeholder for order logic (could navigate to checkout or open modal)
     console.log('Order now clicked');
   };
 
   const handleRelatedProductClick = (id) => {
-    router.push(`/shop/${id}`); // Navigate to the related product details page
+    router.push(`/shop/${id}`);
   };
 
   if (loading) {
-    return <div>Loading product details...</div>; // Display a loading state
+    return <div>Loading product details...</div>;
   }
 
   if (error) {
-    return <div>{error}</div>; // If an error occurred
+    return <div>{error}</div>;
   }
 
   if (!product) {
-    return <div>Product not found</div>; // If the product is not found
+    return <div>Product not found</div>;
   }
 
   return (
-    <div className="p-6 font-afacadFlux bg-green-400">
-      {/* Back Button */}
-      <button onClick={() => router.back()} className="text-blue-black flex bg-white p-4 mb-4 rounded-sm">
-        <i className="ri-arrow-left-line"></i>
-        <p className='hidden md:block'> Back to Shop</p>
-      </button>
-
-      <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg">
-        {/* Main Product Image */}
-        <div className="flex justify-center">
+    <div className="p-6 font-afacadFlux bg-gray-100">
+      <div className="max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-lg flex">
+        {/* Left Side: Product Image Selector */}
+        <div className="flex-none w-1/2">
           <img
-            src={product.mainImage}
+            src={selectedImage}
             alt={product.name}
-            className="w-full h-80 object-contain border-2 border-green-500 rounded-lg mb-6"
+            className="w-full h-auto object-contain border-2 border-green-500 rounded-lg mb-4"
           />
+          {product.additionalImages && product.additionalImages.length > 0 && (
+            <div className="grid grid-cols-3 gap-4 mb-6">
+              {product.additionalImages.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`Additional Image ${index + 1}`}
+                  className="w-auto p-2 h-auto border border-green-500 object-cover rounded-lg cursor-pointer hover:border-green-700"
+                  onClick={() => setSelectedImage(image)}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Additional Images */}
-        {product.additionalImages && product.additionalImages.length > 0 && (
-          <div className="grid grid-cols-3 gap-4 mb-6">
-            {product.additionalImages.map((image, index) => (
-              <img
-                key={index}
-                src={image}
-                alt={`Additional Image ${index + 1}`}
-                className="w-auto p-2 h-auto border border-green-500 object-cover rounded-lg"
-              />
-            ))}
-          </div>
-        )}
-
-        {/* Product Information */}
-        <div className="text-center mb-6">
+        {/* Right Side: Product Details */}
+        <div className="flex-grow pl-6">
           <h1 className="text-3xl font-bold mb-2">{product.name}</h1>
-          <p className="text-xl font-semibold text-gray-700 mb-2">
-            Price: ₹{product.price}
-          </p>
+          <p className="text-xl font-semibold text-gray-700 mb-2">Price: ₹{product.price}</p>
+          <p className="text-gray-600 mb-4">In Stock: {product.stock}</p>
           <p className="text-gray-600 mb-4">{product.description}</p>
 
-          {/* Categories and Tags Section */}
-          <div className="flex flex-col items-center mb-4 pt-4">
+          <div className="flex items-center mb-4">
+            <button className="border border-gray-300 px-2 py-1">-</button>
+            <input type="number" className="border border-gray-300 w-16 text-center mx-2" defaultValue="1" />
+            <button className="border border-gray-300 px-2 py-1">+</button>
+          </div>
+
+          <div className="flex justify-center gap-4 mb-6">
+            <button
+              onClick={handleAddToCart}
+              className="bg-green-600 text-white py-2 px-4 shadow-lg hover:bg-green-500 transition duration-200 rounded-md"
+            >
+              Add To Cart
+            </button>
+            <button
+              onClick={handleOrderNow}
+              className="bg-green-600 text-white py-2 px-4 shadow-lg hover:bg-green-500 transition duration-200 rounded-md"
+            >
+              Buy Now
+            </button>
+          </div>
+
+          <div className="flex flex-col items-start mb-4 pt-4">
             {categories.length > 0 && (
               <p className="text-sm text-gray-500">
                 <span className="font-semibold">Categories:</span> {categories.join(', ')}
@@ -183,56 +201,67 @@ const ProductDetails = ({ params }) => {
               </p>
             )}
           </div>
-
-          {/* Buttons */}
-          <div className="flex justify-center gap-4 mb-6">
-            <button
-              onClick={handleAddToCart}
-              className="bg-green-600 text-white py-2 px-4 shadow-lg hover:bg-green-500 transition duration-200"
-            >
-              Add to Cart
-            </button>
-            <button
-              onClick={handleOrderNow}
-              className="bg-blue-600 text-white py-2 px-4 shadow-lg hover:bg-blue-500 transition duration-200"
-            >
-              Order Now
-            </button>
-          </div>
-        </div>
-
-        {/* Related Products Section */}
-        <div className="mb-6">
-          <h2 className="text-2xl font-semibold mb-4">Related Products</h2>
-          {loadingRelated ? (
-            <p>Loading related products...</p>
-          ) : (
-            <>
-              {relatedProducts.length > 0 ? (
-                <div className="flex overflow-x-scroll">
-                  {relatedProducts.map((relatedProduct) => (
-                    <div
-                      key={relatedProduct.id}
-                      className="flex-shrink-0 w-40 p-2 bg-white border rounded-lg mr-4 cursor-pointer"
-                      onClick={() => handleRelatedProductClick(relatedProduct.id)} // Navigate to related product
-                    >
-                      <img
-                        src={relatedProduct.mainImage}
-                        alt={relatedProduct.name}
-                        className="w-full h-32 object-cover rounded-md mb-2"
-                      />
-                      <h3 className="text-lg font-semibold">{relatedProduct.name}</h3>
-                      <p className="text-sm text-gray-600">₹{relatedProduct.price}</p>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <p className="text-gray-500">No related products found.</p> // Message for no related products
-              )}
-            </>
-          )}
         </div>
       </div>
+
+      {/* Related Products Section with Horizontal Scroll */}
+      {/* Related Products Section with Horizontal Scroll */}
+<div className="relative w-full mt-8">
+  <h2 className="text-2xl font-semibold mb-4">Related Products</h2>
+  
+  {loadingRelated ? (
+    <p className="text-gray-500">Loading related products...</p>
+  ) : (
+    <div className="relative group">
+      {/* Left Arrow */}
+      <button
+        onClick={() => scroll('left')}
+        className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full p-2 shadow-md border border-gray-200 hover:bg-gray-50"
+      >
+        <i className="ri-arrow-left-s-line text-xl"></i>
+      </button>
+
+      {/* Scrollable Container */}
+      <div 
+        ref={scrollContainer}
+        className="flex overflow-x-auto gap-4 pb-4 scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {relatedProducts.length > 0 ? (
+          relatedProducts.map((relatedProduct) => (
+            <div
+              key={relatedProduct.id}
+              className="flex-none w-64 aspect-square cursor-pointer transition-transform hover:scale-105"
+              onClick={() => handleRelatedProductClick(relatedProduct.id)}
+            >
+              <div className="h-full bg-white border rounded-lg p-4 shadow-md flex flex-col">
+                <div className="relative flex-1 mb-2">
+                  <img
+                    src={relatedProduct.mainImage}
+                    alt={relatedProduct.name}
+                    className="absolute inset-0 w-full h-full object-cover rounded-md"
+                  />
+                </div>
+                <h3 className="text-lg font-semibold truncate">{relatedProduct.name}</h3>
+                <p className="text-sm text-gray-600">₹{relatedProduct.price}</p>
+              </div>
+            </div>
+          ))
+        ) : (
+          <p className="text-gray-500">No related products found.</p>
+        )}
+      </div>
+
+      {/* Right Arrow */}
+      <button
+        onClick={() => scroll('right')}
+        className="absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full p-2 shadow-md border border-gray-200 hover:bg-gray-50"
+      >
+        <i className="ri-arrow-right-s-line text-xl"></i>
+      </button>
+    </div>
+  )}
+</div>
     </div>
   );
 };
