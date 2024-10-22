@@ -128,16 +128,16 @@ const Nav = () => {
                         <div className="px-4 py-2 text-sm text-gray-700 border-b">
                           {user.email}
                         </div>
-                        <Link href="/order-history">
+                        <Link href="/History">
                           <p className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             <i className="ri-history-line mr-2"></i>Order History
                           </p>
                         </Link>
-                        <Link href="/profile">
+                        {/* <Link href="/profile">
                           <p className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
                             <i className="ri-user-settings-line mr-2"></i>Profile Settings
                           </p>
-                        </Link>
+                        </Link> */}
                         <button
                           onClick={handleLogout}
                           className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
