@@ -1,321 +1,458 @@
-'use client'; // Ensure this is a client-side component
+"use client";
 
-import React, { useEffect, useState } from 'react';
-import { useSearchParams } from 'next/navigation'; // Updated for App Router
-import { db } from "../firebase"; // Ensure Firebase is imported
-import { doc, getDoc, setDoc, collection, addDoc, getDocs } from "firebase/firestore";
-import Link from 'next/link'; // Import Link from next/link
+import React, { useEffect, useState, useContext } from 'react';
+import { useRouter } from 'next/navigation';
+import { auth, db } from '@/app/firebase';
+import { onAuthStateChanged } from 'firebase/auth';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { toast, Toaster } from 'react-hot-toast';
+import { CartContext } from '@/Context/CartContext';
+import Nav from "@/app/Head/Nav";
+import Footer from "@/app/Bottom/Footer";
 
-// Modal Component for displaying order confirmation and error message
-const Modal = ({ message, onClose }) => {
+// Utility functions
+const formatPrice = (price) => {
+  if (typeof price !== 'number') return '₹0';
+  return `₹${price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+};
+
+// Input Component
+const InputField = ({ 
+  label, 
+  type = "text", 
+  value, 
+  onChange, 
+  error, 
+  required = true, 
+  disabled = false 
+}) => (
+  <div className="mb-4">
+    <label className="block text-sm font-medium text-gray-700 mb-1">
+      {label} {required && <span className="text-red-500">*</span>}
+    </label>
+    <input
+      type={type}
+      value={value}
+      onChange={onChange}
+      disabled={disabled}
+      className={`w-full p-2 border rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent ${
+        error ? 'border-red-500' : 'border-gray-300'
+      } ${disabled ? 'bg-gray-50' : ''}`}
+      required={required}
+    />
+    {error && <p className="mt-1 text-sm text-red-500">{error}</p>}
+  </div>
+);
+
+// Order Summary Component
+const OrderSummary = ({ cartItems, subtotal }) => (
+  <div className="bg-white rounded-lg shadow-lg p-6">
+    <h2 className="text-xl font-bold mb-6 pb-4 border-b">Order Summary</h2>
+    
+    <div className="space-y-4 mb-6">
+      {cartItems.map((item) => (
+        <div key={item.id} className="flex items-start space-x-4 py-4 border-b last:border-0">
+          <img
+            src={item.mainImage}
+            alt={item.name}
+            className="w-20 h-20 object-cover rounded-lg"
+          />
+          <div className="flex-1 min-w-0">
+            <h3 className="font-medium text-gray-900 truncate">{item.name}</h3>
+            <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+            <p className="text-sm font-medium text-green-600">
+              {formatPrice(item.price)} × {item.quantity}
+            </p>
+          </div>
+          <p className="font-medium text-gray-900">
+            {formatPrice(item.price * item.quantity)}
+          </p>
+        </div>
+      ))}
+    </div>
+
+    <div className="space-y-3">
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-500">Subtotal</span>
+        <span>{formatPrice(subtotal)}</span>
+      </div>
+      <div className="flex justify-between text-sm">
+        <span className="text-gray-500">Shipping</span>
+        <span className="text-green-600">Free</span>
+      </div>
+      <div className="flex justify-between text-base font-medium pt-4 border-t">
+        <span>Total</span>
+        <span>{formatPrice(subtotal)}</span>
+      </div>
+    </div>
+  </div>
+);
+
+// Success Modal Component
+const OrderSuccessModal = ({ isOpen, orderId }) => {
+  if (!isOpen) return null;
+
   return (
-    <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
-      <div className="bg-white p-6  shadow-lg">
-        <h2 className="text-lg font-bold mb-4">{message}</h2>
-        <div className="flex justify-between gap-4 py-2">
-          <Link href="/" passHref>
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
+      <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+        <div className="text-center">
+          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
+            <i className="ri-check-line text-2xl text-green-600"></i>
+          </div>
+          <h2 className="text-2xl font-semibold mb-2">Thank You for Your Order!</h2>
+          <p className="text-gray-600 mb-2">Order ID: {orderId}</p>
+          <p className="text-gray-500 mb-6">
+            We'll send you an email with your order details and tracking information.
+          </p>
+          <div className="space-y-3">
             <button
-              onClick={onClose}
-              className="bg-green-600 text-white px-40 py-2 rounded hover:bg-green-700"
+              onClick={() => window.location.href = '/order-history'}
+              className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
             >
-              OK
+              View Order History
             </button>
-          </Link>
-          <Link href="/Shop" passHref>
             <button
-              className="bg-blue-600 text-white px-40 py-2 rounded hover:bg-blue-700"
+              onClick={() => window.location.href = '/shop'}
+              className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
             >
-              Shop
+              Continue Shopping
             </button>
-          </Link>
+          </div>
         </div>
       </div>
     </div>
   );
-}
+};
 
-function Order_info() {
-  const searchParams = useSearchParams(); // Use useSearchParams for query parameters
+// Main Checkout Component
+function Checkout() {
+  const router = useRouter();
+  const { cartItems, clearCart, total: cartTotal } = useContext(CartContext);
+  const [isLoading, setIsLoading] = useState(true);
+  const [processing, setProcessing] = useState(false);
+  const [user, setUser] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [orderId, setOrderId] = useState(null);
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
+    address: '',
+    city: '',
+    state: '',
+    pincode: '',
+    country: 'India',
+    paymentMethod: 'cod'
+  });
+  const [errors, setErrors] = useState({});
 
-  const [orderData, setOrderData] = useState([]);
-  const [addresses, setAddresses] = useState([]);
-  const [selectedAddressId, setSelectedAddressId] = useState(''); // Store selected address ID
-  const [address, setAddress] = useState('');
-  const [city, setCity] = useState('');
-  const [state, setState] = useState('');
-  const [pincode, setPincode] = useState('');
-  const [paymentMethod, setPaymentMethod] = useState('Online');
-  const [totalAmount, setTotalAmount] = useState(0);
-  const [message, setMessage] = useState(''); // Message to show on the page
-  const [isAddingNewAddress, setIsAddingNewAddress] = useState(false); // State to control showing address form
-  const [modalVisible, setModalVisible] = useState(false); // State for modal visibility
-  const [modalMessage, setModalMessage] = useState(''); // Message for the modal
-  const [isSuccessModalVisible, setIsSuccessModalVisible] = useState(false); // For success modal
-
+  // Auth check and data population
   useEffect(() => {
-    const items = searchParams.get('items');
-    
-    if (items) {
-      try {
-        const parsedIds = JSON.parse(decodeURIComponent(items)); // Parse IDs
-        const fetchProducts = async () => {
-          const products = await Promise.all(parsedIds.map(async (id) => {
-            const productRef = doc(db, "products", id); // Reference to the product document
-            const productSnap = await getDoc(productRef); // Fetch the product document
-            if (productSnap.exists()) {
-              const productData = productSnap.data();
-              return {
-                id,
-                name: productData.name || '', // Ensure name is a string
-                price: parseFloat(productData.price) || 0, // Ensure price is a valid number
-                quantity: parseInt(productData.quantity) || 1, // Ensure quantity is a valid number
-                image: productData.image || '', // Ensure image is a string
-              };
-            }
-            return null; // Return null if product doesn't exist
-          }));
-          setOrderData(products.filter(Boolean)); // Set order data and filter out null results
-        };
-        fetchProducts();
-      } catch (error) {
-        console.error("Error parsing items:", error);
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      if (currentUser) {
+        setUser(currentUser);
+        // Pre-fill form data
+        setFormData(prev => ({
+          ...prev,
+          email: currentUser.email || '',
+          firstName: currentUser.displayName?.split(' ')[0] || '',
+          lastName: currentUser.displayName?.split(' ')[1] || ''
+        }));
+      } else {
+        router.push('/login?redirect=checkout');
       }
-    } else {
-      const id = searchParams.get('id');
-      const name = searchParams.get('name') || '';
-      const price = parseFloat(searchParams.get('price')) || 0;
-      const quantity = parseInt(searchParams.get('quantity')) || 1;
-      const image = searchParams.get('image') || '';
-      setOrderData([{ id, name, price, quantity, image }]);
-    }
+      setIsLoading(false);
+    });
 
-    // Fetch saved addresses from Firestore when the component mounts
-    const fetchAddresses = async () => {
-      const userId = "user-id"; // Replace this with actual user ID logic
-      const addressesRef = collection(db, `users/${userId}/addresses`); // Adjust path to addresses
-      const addressSnap = await getDocs(addressesRef);
-      const fetchedAddresses = addressSnap.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setAddresses(fetchedAddresses);
-    };
-    
-    fetchAddresses();
-  }, [searchParams]);
+    return () => unsubscribe();
+  }, [router]);
 
-  // Calculate total price based on items
+  // Cart check
   useEffect(() => {
-    if (orderData.length > 0) {
-      const total = orderData.reduce((sum, item) => {
-        const itemTotal = (item.price * item.quantity) || 0; // Fallback to 0 if undefined
-        return sum + itemTotal;
-      }, 0);
-      setTotalAmount(total);
-    } else {
-      setTotalAmount(0); // Reset total if no items
+    if (!isLoading && cartItems.length === 0) {
+      router.push('/Cart');
     }
-  }, [orderData]);
+  }, [cartItems, isLoading, router]);
 
-  // Function to save new address
-  const handleNewAddressSubmit = async (e) => {
-    e.preventDefault();
-    const newAddress = { address, city, state, pincode };
+  const validateForm = () => {
+    const newErrors = {};
+    const phoneRegex = /^\d{10}$/;
+    const pincodeRegex = /^\d{6}$/;
+    const nameRegex = /^[a-zA-Z\s]{1,50}$/;
 
-    try {
-      const userId = "user-id"; // Replace this with actual user ID logic
-      const addressRef = collection(db, `users/${userId}/addresses`);
-      await addDoc(addressRef, newAddress);
-      setAddresses(prev => [...prev, newAddress]);
-      setMessage('Address saved successfully!'); // Display success message
-      // Reset fields after submission
-      setAddress('');
-      setCity('');
-      setState('');
-      setPincode('');
-      setIsAddingNewAddress(false); // Close the address form
-    } catch (error) {
-      console.error("Error saving address:", error);
-      setMessage('Error saving address. Please try again.'); // Display error message
-    }
+    if (!formData.firstName.trim() || !nameRegex.test(formData.firstName))
+      newErrors.firstName = 'Please enter a valid first name';
+      
+    if (!formData.lastName.trim() || !nameRegex.test(formData.lastName))
+      newErrors.lastName = 'Please enter a valid last name';
+      
+    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      newErrors.email = 'Please enter a valid email address';
+      
+    if (!formData.phone.trim() || !phoneRegex.test(formData.phone))
+      newErrors.phone = 'Please enter a valid 10-digit phone number';
+      
+    if (!formData.address.trim())
+      newErrors.address = 'Please enter your complete address';
+      
+    if (!formData.city.trim() || !nameRegex.test(formData.city))
+      newErrors.city = 'Please enter a valid city name';
+      
+    if (!formData.state.trim() || !nameRegex.test(formData.state))
+      newErrors.state = 'Please enter a valid state name';
+      
+    if (!formData.pincode.trim() || !pincodeRegex.test(formData.pincode))
+      newErrors.pincode = 'Please enter a valid 6-digit pincode';
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
-  // Function to handle order submission
-  const handleOrderSubmit = async (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     
-    const selectedAddress = addresses.find(address => address.id === selectedAddressId);
-    
-    if (!selectedAddress) {
-      setMessage("Please select a valid address."); // Display error if no address selected
+    if (!validateForm()) {
+      toast.error('Please fill all required fields correctly');
       return;
     }
 
     try {
-      const orderDataToSave = {
-        items: orderData,
-        totalAmount,
-        paymentMethod,
-        selectedAddress,
-        createdAt: new Date(),
+      setProcessing(true);
+
+      // Create order in Firebase
+      const orderData = {
+        userId: user.uid,
+        userEmail: user.email,
+        orderDate: serverTimestamp(),
+        shippingAddress: {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          address: formData.address,
+          city: formData.city,
+          state: formData.state,
+          pincode: formData.pincode,
+          country: formData.country,
+          phone: formData.phone
+        },
+        items: cartItems.map(item => ({
+          productId: item.id,
+          name: item.name,
+          price: item.price,
+          quantity: item.quantity,
+          subtotal: item.price * item.quantity
+        })),
+        totalAmount: cartTotal,
+        paymentMethod: formData.paymentMethod,
+        status: 'pending',
+        paymentStatus: 'pending'
       };
-      await addDoc(collection(db, "orders"), orderDataToSave);
-      setModalMessage(`:) Order placed successfully for a total of ₹${totalAmount}. Payment Method: ${paymentMethod}.`); // Display order confirmation message
-      setIsSuccessModalVisible(true); // Show success modal
+
+      const orderRef = await addDoc(collection(db, "orders"), orderData);
+      setOrderId(orderRef.id);
+      
+      // Clear cart and show success
+      clearCart();
+      setShowSuccessModal(true);
+      
     } catch (error) {
-      console.error("Error saving order:", error);
-      setModalMessage('Error placing order. Please try again.'); // Set the message for modal
-      setModalVisible(true); // Show the modal
+      console.error('Order error:', error);
+      toast.error('Failed to process order. Please try again.');
+    } finally {
+      setProcessing(false);
     }
   };
 
-  // Function to close the success modal
-  const closeSuccessModal = () => {
-    setIsSuccessModalVisible(false);
-    setModalMessage(''); // Reset modal message
-  };
-
-  // Function to close the error modal
-  const closeErrorModal = () => {
-    setModalVisible(false);
-    setModalMessage(''); // Reset modal message
-  };
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500" />
+      </div>
+    );
+  }
 
   return (
-    <div className="container font-afacadFlux mx-auto p-6">
-      <h1 className="text-3xl font-bold mb-6">Order Summary</h1>
+    <>
 
-      {/* Display product details */}
-      {orderData.length > 0 ? (
-        orderData.map((item, index) => (
-          <div key={index} className="bg-white shadow-md rounded-lg p-4 mb-6">
-            <div className="flex flex-col md:flex-row items-center space-x-4">
-              {item.image && (
-                <img
-                  src={item.image}
-                  alt={item.name}
-                  className="w-24 h-24 object-cover rounded-lg"
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4 lg:px-8">
+          <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
+            {/* Left Column - Order Summary */}
+            <div className="lg:col-span-1">
+              <div className="mb-8 lg:sticky lg:top-8">
+                <OrderSummary 
+                  cartItems={cartItems}
+                  subtotal={cartTotal}
                 />
-              )}
-              <div className="flex flex-col">
-                <h2 className="text-xl font-semibold">{item.name}</h2>
-                <p>Quantity: {item.quantity}</p>
-                <p>Price per item: ₹{item.price}</p>
-                <h3 className="text-xl font-bold mt-4">
-                  Total: ₹{(item.price * item.quantity).toFixed(2)}
-                </h3>
+              </div>
+            </div>
+
+            {/* Right Column - Checkout Form */}
+            <div className="lg:col-span-1">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <h1 className="text-2xl font-bold mb-6">Shipping Information</h1>
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Personal Information */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InputField
+                      label="First Name"
+                      value={formData.firstName}
+                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      error={errors.firstName}
+                    />
+                    <InputField
+                      label="Last Name"
+                      value={formData.lastName}
+                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                      error={errors.lastName}
+                    />
+                  </div>
+
+                  <InputField
+                    label="Email"
+                    type="email"
+                    value={formData.email}
+                    onChange={(e) => setFormData({...formData, email: e.target.value})}
+                    error={errors.email}
+                    disabled={true}
+                  />
+
+                  <InputField
+                    label="Phone Number"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                    error={errors.phone}
+                  />
+
+                  {/* Address Information */}
+                  <InputField
+                    label="Address"
+                    value={formData.address}
+                    onChange={(e) => setFormData({...formData, address: e.target.value})}
+                    error={errors.address}
+                  />
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InputField
+                      label="City"
+                      value={formData.city}
+                      onChange={(e) => setFormData({...formData, city: e.target.value})}
+                      error={errors.city}
+                    />
+                    <InputField
+                      label="State"
+                      value={formData.state}
+                      onChange={(e) => setFormData({...formData, state: e.target.value})}
+                      error={errors.state}
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <InputField
+                      label="Pincode"
+                      value={formData.pincode}
+                      onChange={(e) => setFormData({...formData, pincode: e.target.value})}
+                      error={errors.pincode}
+                    />
+                    <InputField
+                      label="Country"
+                      value={formData.country}
+                      disabled={true}
+                    />
+                  </div>
+
+                  {/* Payment Method */}
+                  <div className="border-t pt-6">
+                    <h2 className="text-lg font-semibold mb-4">Payment Method</h2>
+                    <div className="space-y-4">
+                      <label className="flex items-center space-x-3">
+                        <input
+                          type="radio"
+                          checked={formData.paymentMethod === 'cod'}
+                          onChange={() => setFormData({...formData, paymentMethod: 'cod'})}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500"
+                        />
+                        <span>Cash on Delivery (COD)</span>
+                      </label>
+                    </div>
+                  </div>
+
+           {/* Submit Button */}
+           <button
+                    type="submit"
+                    disabled={processing}
+                    className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
+                  >
+                    {processing ? (
+                      <>
+                        <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Processing Order...
+                      </>
+                    ) : (
+                      <>
+                        <i className="ri-secure-payment-line"></i>
+                        <span>Place Order</span>
+                      </>
+                    )}
+                  </button>
+
+                  {/* Order Note */}
+                  <div className="mt-4 text-sm text-gray-500 text-center">
+                    <p>By placing this order, you agree to our</p>
+                    <div className="flex justify-center space-x-2">
+                      <a href="/terms" className="text-green-600 hover:text-green-700">Terms of Service</a>
+                      <span>&</span>
+                      <a href="/privacy" className="text-green-600 hover:text-green-700">Privacy Policy</a>
+                    </div>
+                  </div>
+                </form>
               </div>
             </div>
           </div>
-        ))
-      ) : (
-        <p>Loading order details...</p>
-      )}
-
-      <div className="bg-gray-100 p-4 rounded-lg">
-        <h2 className="text-2xl font-bold mb-4">Total Amount: ₹{totalAmount.toFixed(2)}</h2>
+        </div>
       </div>
-
-      {/* Add New Address Button */}
-      <button
-        onClick={() => setIsAddingNewAddress(true)}
-        className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 mb-4"
-      >
-        Add New Address
-      </button>
-
-      {/* Select Address */}
-      <h2 className="text-2xl font-bold mb-4">Select Address:</h2>
-      <select
-        onChange={(e) => setSelectedAddressId(e.target.value)}
-        className="mb-4 border border-gray-300 rounded px-4 py-2"
-        value={selectedAddressId}
-      >
-        <option value="">Select an address</option>
-        {addresses.map(address => (
-          <option key={address.id} value={address.id}>
-            {address.address}, {address.city}, {address.state}, {address.pincode}
-          </option>
-        ))}
-      </select>
-
-      {/* New Address Form */}
-      {isAddingNewAddress && (
-        <form onSubmit={handleNewAddressSubmit} className="mb-4">
-          <input
-            type="text"
-            placeholder="Address"
-            className="border border-gray-300 rounded px-4 py-2 mb-2 w-full"
-            value={address}
-            onChange={(e) => setAddress(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="City"
-            className="border border-gray-300 rounded px-4 py-2 mb-2 w-full"
-            value={city}
-            onChange={(e) => setCity(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="State"
-            className="border border-gray-300 rounded px-4 py-2 mb-2 w-full"
-            value={state}
-            onChange={(e) => setState(e.target.value)}
-            required
-          />
-          <input
-            type="text"
-            placeholder="Pincode"
-            className="border border-gray-300 rounded px-4 py-2 mb-4 w-full"
-            value={pincode}
-            onChange={(e) => setPincode(e.target.value)}
-            required
-          />
-          <button
-            type="submit"
-            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-          >
-            Save Address
-          </button>
-        </form>
-      )}
-
-      {/* Payment Method Selection */}
-      <h2 className="text-2xl font-bold mb-4">Payment Method:</h2>
-      <div className="flex space-x-4 mb-4">
-        <button
-          onClick={() => setPaymentMethod('Online')}
-          className={`px-4 py-2 rounded ${paymentMethod === 'Online' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
-        >
-          Online
-        </button>
-        <button
-          onClick={() => setPaymentMethod('Cash on Delivery')}
-          className={`px-4 py-2 rounded ${paymentMethod === 'Cash on Delivery' ? 'bg-blue-600 text-white' : 'bg-gray-300'}`}
-        >
-          Cash on Delivery
-        </button>
-      </div>
-
-      {/* Order Submit Button */}
-      <button
-        onClick={handleOrderSubmit}
-        className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-      >
-        Place Order
-      </button>
 
       {/* Success Modal */}
-      {isSuccessModalVisible && (
-        <Modal message={modalMessage} onClose={closeSuccessModal} />
-      )}
+      <OrderSuccessModal 
+        isOpen={showSuccessModal}
+        orderId={orderId}
+      />
 
-      {/* Error Modal */}
-      {modalVisible && (
-        <Modal message={modalMessage} onClose={closeErrorModal} />
-      )}
-    </div>
+      <Footer />
+    </>
   );
 }
 
-export default Order_info;
+// Export the page component
+export default function CheckoutPage() {
+  return (
+    <>
+      <Checkout />
+      <Toaster
+        position="top-right"
+        toastOptions={{
+          duration: 3000,
+          style: {
+            background: '#333',
+            color: '#fff',
+          },
+          success: {
+            iconTheme: {
+              primary: '#22c55e',
+              secondary: '#fff',
+            },
+          },
+          error: {
+            iconTheme: {
+              primary: '#ef4444',
+              secondary: '#fff',
+            },
+          },
+        }}
+      />
+    </>
+  );
+}

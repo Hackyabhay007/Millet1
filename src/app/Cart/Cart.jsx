@@ -1,11 +1,39 @@
 "use client";
+
 import React, { useContext, useEffect, useState } from "react";
 import { CartContext } from "@/Context/CartContext";
-import "remixicon/fonts/remixicon.css"; // Import Remix Icons
+import "remixicon/fonts/remixicon.css";
 import Link from "next/link";
-import { useRouter } from "next/navigation"; // Import useRouter for redirect
-import { db } from "../firebase"; // Import Firestore
-import { doc, getDoc } from "firebase/firestore"; // Import Firestore methods
+import { useRouter } from "next/navigation";
+import { db } from "../firebase";
+import { doc, getDoc } from "firebase/firestore";
+import { toast } from 'react-hot-toast';
+
+// Price formatting utility
+const formatPrice = (price) => {
+  if (typeof price !== 'number') return '₹0';
+  return `₹${price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+};
+
+// Loading Skeleton
+const CartSkeleton = () => (
+  <div className="min-h-screen bg-gray-50 p-6">
+    <div className="animate-pulse max-w-6xl mx-auto space-y-6">
+      <div className="h-8 bg-gray-200 w-48 rounded"></div>
+      {[1, 2, 3].map((i) => (
+        <div key={i} className="bg-white p-6 rounded-lg shadow">
+          <div className="flex items-center space-x-4">
+            <div className="w-20 h-20 bg-gray-200 rounded"></div>
+            <div className="flex-1 space-y-3">
+              <div className="h-4 bg-gray-200 w-3/4 rounded"></div>
+              <div className="h-4 bg-gray-200 w-1/4 rounded"></div>
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
 
 function Cart() {
   const {
@@ -14,190 +42,201 @@ function Cart() {
     clearCart,
     increaseQuantity,
     decreaseQuantity,
-    selectItem,
-    totalPrice,
-    selectedItemsTotal,
+    total,
+    itemCount,
+    isLoading: isCartLoading,
   } = useContext(CartContext);
 
-  const router = useRouter(); // Initialize router
-  const [productImages, setProductImages] = useState({}); // State to hold product images
+  const router = useRouter();
+  const [productImages, setProductImages] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Fetch images for each product in the cart
+  // Fetch product images
   useEffect(() => {
     const fetchImages = async () => {
+      setIsLoading(true);
       const images = {};
 
-      for (const item of cartItems) {
-        // Ensure item is defined and has an id
-        if (item && item.id && !images[item.id]) {
-          try {
-            const productRef = doc(db, "products", item.id); // Reference to the product document
-            const productSnap = await getDoc(productRef); // Fetch the product document
+      try {
+        for (const item of cartItems) {
+          if (item && item.id && !images[item.id]) {
+            const productRef = doc(db, "products", item.id);
+            const productSnap = await getDoc(productRef);
 
             if (productSnap.exists()) {
-              images[item.id] = productSnap.data().mainImage; // Get mainImage from Firestore
-            } else {
-              console.error("No such document:", item.id);
+              images[item.id] = productSnap.data().mainImage;
             }
-          } catch (error) {
-            console.error("Error fetching product:", item.id, error);
           }
         }
+        setProductImages(images);
+      } catch (error) {
+        console.error("Error fetching product images:", error);
+        toast.error("Failed to load some product images");
+      } finally {
+        setIsLoading(false);
       }
-      setProductImages(images); // Update state with fetched images
     };
 
-    fetchImages();
-  }, [cartItems]); // Fetch images whenever cartItems change
+    if (cartItems.length > 0) {
+      fetchImages();
+    } else {
+      setIsLoading(false);
+    }
+  }, [cartItems]);
 
-  // Function to handle ordering individual item and redirecting to Order page
-  const handleOrderItem = (item) => {
-    if (!productImages[item.id]) return; // Safeguard to ensure image exists
-
-    const query = new URLSearchParams({
-      id: item.id,
-      name: item.name,
-      price: item.price,
-      quantity: item.quantity,
-      image: productImages[item.id], // Get the image from state
-    }).toString();
-
-    router.push(`/Order?${query}`);
+  const handleProceedToCheckout = () => {
+    if (cartItems.length === 0) {
+      toast.error("Your cart is empty");
+      return;
+    }
+    
+    try {
+      const itemIds = cartItems.map(item => item.id);
+      const query = new URLSearchParams({
+        items: JSON.stringify(itemIds)
+      }).toString();
+      router.push(`/Order?${query}`);
+    } catch (error) {
+      console.error("Error proceeding to checkout:", error);
+      toast.error("Failed to proceed to checkout");
+    }
   };
 
-  // Function to handle ordering all selected items
-  // Function to handle ordering all selected items
-const handleOrderSelectedItems = () => {
-  const selectedItems = cartItems.filter(item => item.selected);
-  if (selectedItems.length > 0) {
-    const selectedIds = selectedItems.map(item => item.id);
-    const query = new URLSearchParams({
-      items: JSON.stringify(selectedIds) // Only send IDs
-    }).toString();
-    router.push(`/Order?${query}`);
-  } else {
-    alert("No items selected!");
+  if (isLoading || isCartLoading) {
+    return <CartSkeleton />;
   }
-};
-
 
   if (cartItems.length === 0) {
     return (
-      <p className="min-h-fit text-center py-40 text-xl font-bold font-afacadFlux bg-gray-300">
-        Your cart is empty! <i className="ri-box-3-line"></i><br /><br />
-        <Link href="/Shop" className="bg-rose-600 text-white py-1 px-4 text-lg hover:bg-rose-700">GO TO SHOP <i className="ri-store-2-line font-thin text-xl"></i></Link>
-      </p>
+      <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center space-y-6 font-afacadFlux">
+        <div className="text-center space-y-4">
+          <i className="ri-shopping-cart-line text-6xl text-green-500"></i>
+          <h2 className="text-2xl font-bold text-gray-800">Your cart is empty!</h2>
+          <p className="text-gray-600">Add some products to your cart</p>
+        </div>
+        <Link 
+          href="/Shop" 
+          className="bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+        >
+          <i className="ri-store-2-line"></i>
+          <span>Continue Shopping</span>
+        </Link>
+      </div>
     );
   }
 
   return (
-    <div className="container font-afacadFlux mx-auto p-6">
-      <div className="flex justify-between">
-        <h2 className="text-2xl font-semibold mb-6">Your Cart </h2>
-        <Link href="/History">
-          <button className="text-xl bg-gray-600 my-2 px-4 hover:bg-gray-400 text-white rounded">
-            <i className="ri-history-line "></i> History
-          </button>
-        </Link>
-      </div>
-      {/* Cart Items */}
-      <div className="space-y-6">
-        {cartItems.map((item) => (
-          <div
-            key={item.id}
-            className="flex flex-col md:flex-row items-center justify-around bg-white p-4 rounded-lg shadow-md border border-gray-200 space-y-4 md:space-y-0 md:space-x-4"
-          >
-            {/* Left Column: Selection Input (Checkbox) */}
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={item.selected || false}
-                onChange={() => selectItem(item.id)}
-                className="h-6 w-6 cursor-pointer"
-              />
-            </div>
+    <div className="min-h-screen bg-gray-50 py-8 font-afacadFlux">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-6xl">
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row justify-between items-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-800 flex items-center space-x-2">
+            <i className="ri-shopping-cart-2-line text-green-600"></i>
+            <span>Shopping Cart</span>
+            <span className="text-sm text-gray-500">({itemCount} items)</span>
+          </h1>
+          <div className="flex items-center space-x-4 mt-4 sm:mt-0">
+            <Link 
+              href="/Shop"
+              className="text-green-600 hover:text-green-700 flex items-center space-x-1"
+            >
+              <i className="ri-arrow-left-line"></i>
+              <span>Continue Shopping</span>
+            </Link>
+          </div>
+        </div>
 
-            {/* Right Column: Product Image, Name, Price */}
-            <div className="flex flex-col md:flex-row items-center space-x-3">
-              {/* Product Image */}
-              <img
-                src={productImages[item.id]} // Use the fetched image URL
-                alt={item.name}
-                className="w-20 h-20 object-cover rounded-md"
-              />
+        {/* Cart Items */}
+        <div className="space-y-4">
+          {cartItems.map((item) => (
+            <div
+              key={item.id}
+              className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-4"
+            >
+              <div className="flex flex-col sm:flex-row items-center gap-4">
+                {/* Product Image */}
+                <div className="flex-none">
+                  <img
+                    src={productImages[item.id]}
+                    alt={item.name}
+                    className="w-24 h-24 object-cover rounded-lg"
+                  />
+                </div>
 
-              {/* Item Details */}
-              <div className="flex flex-col">
-                <p className="text-lg font-semibold">{item.name}</p>
-                <p className="text-gray-600">Price: ₹{item.price}</p>
+                {/* Product Details */}
+                <div className="flex-grow text-center sm:text-left">
+                  <h3 className="text-lg font-semibold text-gray-800">{item.name}</h3>
+                  <p className="text-green-600 font-medium">{formatPrice(item.price)}</p>
+                </div>
+
+                {/* Quantity Controls */}
+                <div className="flex flex-col sm:flex-row items-center gap-4">
+                  <div className="flex items-center bg-gray-100 rounded-lg">
+                    <button
+                      onClick={() => decreaseQuantity(item.id)}
+                      className="p-2 text-green-600 hover:text-green-800 transition-colors disabled:opacity-50"
+                      disabled={item.quantity <= 1}
+                    >
+                      <i className="ri-subtract-line"></i>
+                    </button>
+                    <span className="px-4 font-medium">{item.quantity}</span>
+                    <button
+                      onClick={() => increaseQuantity(item.id)}
+                      className="p-2 text-green-600 hover:text-green-800 transition-colors disabled:opacity-50"
+                      disabled={item.quantity >= item.stock}
+                    >
+                      <i className="ri-add-line"></i>
+                    </button>
+                  </div>
+
+                  {/* Remove Button */}
+                  <button
+                    onClick={() => removeFromCart(item.id)}
+                    className="text-red-600 hover:text-red-700 p-2"
+                    title="Remove Item"
+                  >
+                    <i className="ri-delete-bin-line"></i>
+                  </button>
+                </div>
+
+                {/* Item Total */}
+                <div className="text-right">
+                  <p className="text-sm text-gray-500">Total</p>
+                  <p className="font-semibold">{formatPrice(item.price * item.quantity)}</p>
+                </div>
               </div>
             </div>
+          ))}
+        </div>
 
-            {/* Quantity Control and Order Button */}
-            <div className="flex items-center md:space-x-10 w-full md:w-auto">
-              {/* Quantity Control */}
-              <div className="flex items-center border border-black p-1 rounded-full space-x-2">
-                <button
-                  onClick={() => decreaseQuantity(item.id)}
-                  className="bg-gray-700 font-bold text-xl text-white md:py-1 px-3 md:px-5 rounded-full"
-                >
-                  -
-                </button>
-                <span className="px-4 text-lg font-semibold">{item.quantity}</span>
-                <button
-                  onClick={() => increaseQuantity(item.id)}
-                  className="bg-gray-700 text-xl font-bold text-white md:py-1 px-3 md:px-5 rounded-full"
-                >
-                  +
-                </button>
-              </div>
+        {/* Cart Summary */}
+        <div className="mt-8 bg-white rounded-lg shadow-md p-6">
+          <div className="space-y-4">
+            <div className="flex justify-between items-center border-b pb-4">
+              <span className="text-gray-600">Subtotal ({itemCount} items):</span>
+              <span className="text-2xl font-bold text-green-600">{formatPrice(total)}</span>
+            </div>
 
-              {/* Order Button for Individual Item */}
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
               <button
-                onClick={() => handleOrderItem(item)}
-                className="ml-4 font-semibold text-xl rounded-full bg-green-500 text-white px-6 py-2"
+                onClick={handleProceedToCheckout}
+                className="flex-1 bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition-colors flex items-center justify-center space-x-2"
               >
-                Order
+                <i className="ri-shopping-bag-line"></i>
+                <span>Proceed to Checkout</span>
               </button>
-
-              {/* Remove Button */}
+              
               <button
-                onClick={() => removeFromCart(item.id)}
-                className="ml-4 text-xl border border-black rounded-full hover:bg-gray-800 hover:text-white text-gray-800 px-3 w-full"
+                onClick={clearCart}
+                className="flex-1 bg-red-50 text-red-600 py-3 px-6 rounded-lg hover:bg-red-100 transition-colors flex items-center justify-center space-x-2"
               >
                 <i className="ri-delete-bin-line"></i>
+                <span>Clear Cart</span>
               </button>
             </div>
           </div>
-        ))}
-      </div>
-
-      {/* Total Price */}
-      <div className="mt-6 space-y-4">
-        <h3 className="text-xl font-bold">Selected Items Total: ₹{selectedItemsTotal()}</h3>
-        <h3 className="text-lg text-gray-400 font-semibold">All Product Total: ₹{totalPrice()}</h3>
-      </div>
-
-      {/* Order Selected Items Button */}
-      <div className="mt-4">
-        <button
-          onClick={handleOrderSelectedItems}
-          className="bg-yellow-800 border-b font-semibold border-transparent flex gap-2 hover:border-black hover:bg-yellow-400 hover:text-black text-white px-6 py-2"
-        >
-          Order Selected Items
-          <i className="ri-box-1-fill text-lg"></i>
-        </button>
-      </div>
-
-      {/* Clear Cart Button */}
-      <div className="mt-4">
-        <button
-          onClick={clearCart}
-          className="bg-red-500 flex gap-2 font-semibold hover:bg-gray-700 text-white px-6 py-2"
-        >
-          Clear Cart
-          <i className="ri-delete-bin-7-line"></i>
-        </button>
+        </div>
       </div>
     </div>
   );

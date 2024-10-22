@@ -1,129 +1,278 @@
-import { createContext, useState, useEffect } from 'react';
+"use client";
 
-// Create Cart Context
+import { createContext, useState, useEffect, useMemo, useCallback } from 'react';
+import { toast } from 'react-hot-toast';
+
 export const CartContext = createContext();
 
-// CartProvider component
 export const CartProvider = ({ children }) => {
-  // Load cart items from localStorage only on the client-side
   const [cartItems, setCartItems] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load cart from localStorage when component mounts
+  // Load cart from localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem('cartItems');
-    if (savedCart) {
-      setCartItems(JSON.parse(savedCart));
-    }
+    const loadCart = () => {
+      try {
+        const savedCart = localStorage.getItem('cartItems');
+        if (savedCart) {
+          const parsedCart = JSON.parse(savedCart);
+          // Validate cart data
+          if (Array.isArray(parsedCart) && parsedCart.every(item => 
+            item?.id && 
+            typeof item.quantity === 'number' && 
+            typeof item.price === 'number'
+          )) {
+            setCartItems(parsedCart);
+          } else {
+            throw new Error('Invalid cart data');
+          }
+        }
+      } catch (error) {
+        console.error('Error loading cart:', error);
+        toast.error('Error loading your cart');
+        localStorage.removeItem('cartItems'); // Clear invalid cart data
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCart();
   }, []);
 
-  // Save cart items to localStorage whenever cart changes
+  // Save cart to localStorage
   useEffect(() => {
-    if (cartItems.length > 0) {
-      localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    try {
+      if (cartItems.length > 0) {
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+      } else {
+        localStorage.removeItem('cartItems');
+      }
+    } catch (error) {
+      console.error('Error saving cart:', error);
+      toast.error('Error saving your cart');
     }
   }, [cartItems]);
 
-  // Add product to cart
-  const addToCart = (product) => {
-    const existingProduct = cartItems.find((item) => item.id === product.id);
-    if (existingProduct) {
-      setCartItems((prevItems) =>
-        prevItems.map((item) =>
-          item.id === product.id
-            ? { ...item, quantity: item.quantity + 1 }
-            : item
-        )
-      );
-    } else {
-      setCartItems((prevItems) => [...prevItems, { ...product, quantity: 1 }]);
+  // Validate product data
+  const validateProduct = useCallback((product) => {
+    if (!product?.id || typeof product.price !== 'number' || typeof product.stock !== 'number') {
+      throw new Error('Invalid product data');
     }
-  };
+    return true;
+  }, []);
 
-  // Remove product from cart
-  const removeFromCart = (id) => {
-    setCartItems((prevItems) => prevItems.filter((item) => item.id !== id));
-  };
+  // Add to cart
+  const addToCart = useCallback((product, quantity = 1) => {
+    try {
+      validateProduct(product);
+      
+      if (quantity < 1) throw new Error('Invalid quantity');
 
-  // Clear the entire cart
-  const clearCart = () => {
-    setCartItems([]);
-  };
+      setCartItems((prevItems) => {
+        const existingProduct = prevItems.find((item) => item.id === product.id);
+        
+        if (existingProduct) {
+          const newQuantity = existingProduct.quantity + quantity;
+          
+          if (newQuantity > product.stock) {
+            toast.error(`Only ${product.stock} items available`);
+            return prevItems;
+          }
 
-  // Increase product quantity in cart
-  const increaseQuantity = (id) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id ? { ...item, quantity: item.quantity + 1 } : item
-      )
-    );
-  };
+          const updatedItems = prevItems.map((item) =>
+            item.id === product.id
+              ? { ...item, quantity: newQuantity }
+              : item
+          );
 
-  // Decrease product quantity in cart
-  const decreaseQuantity = (id) => {
-    setCartItems((prevItems) =>
-      prevItems.map((item) =>
-        item.id === id
-          ? { ...item, quantity: Math.max(1, item.quantity - 1) }
-          : item
-      )
-    );
-  };
+          toast.success('Cart updated successfully!');
+          return updatedItems;
+        } else {
+          if (quantity > product.stock) {
+            toast.error(`Only ${product.stock} items available`);
+            return prevItems;
+          }
 
-  // Toggle the selection of an item
-  const selectItem = (id) => {
+          toast.success('Item added to cart!');
+          return [...prevItems, { 
+            ...product,
+            quantity,
+            selected: false,
+            addedAt: new Date().toISOString()
+          }];
+        }
+      });
+    } catch (error) {
+      console.error('Error adding to cart:', error);
+      toast.error('Failed to add item to cart');
+    }
+  }, [validateProduct]);
+
+  // Remove from cart
+  const removeFromCart = useCallback((id) => {
+    try {
+      if (!id) throw new Error('Invalid product ID');
+
+      setCartItems((prevItems) => {
+        const updatedItems = prevItems.filter((item) => item.id !== id);
+        toast.success('Item removed from cart');
+        return updatedItems;
+      });
+    } catch (error) {
+      console.error('Error removing from cart:', error);
+      toast.error('Failed to remove item');
+    }
+  }, []);
+
+  // Clear cart
+  const clearCart = useCallback(() => {
+    try {
+      setCartItems([]);
+      localStorage.removeItem('cartItems');
+      toast.success('Cart cleared');
+    } catch (error) {
+      console.error('Error clearing cart:', error);
+      toast.error('Failed to clear cart');
+    }
+  }, []);
+
+  // Update quantity
+  const updateQuantity = useCallback((id, newQuantity) => {
+    try {
+      if (!id || typeof newQuantity !== 'number') {
+        throw new Error('Invalid parameters');
+      }
+
+      setCartItems((prevItems) =>
+        prevItems.map((item) => {
+          if (item.id === id) {
+            const validQuantity = Math.min(Math.max(1, newQuantity), item.stock);
+            
+            if (validQuantity !== newQuantity) {
+              toast.error(`Only ${item.stock} items available`);
+            }
+            
+            return { ...item, quantity: validQuantity };
+          }
+          return item;
+        })
+      );
+    } catch (error) {
+      console.error('Error updating quantity:', error);
+      toast.error('Failed to update quantity');
+    }
+  }, []);
+
+  // Increase quantity
+  const increaseQuantity = useCallback((id) => {
+    const item = cartItems.find((item) => item.id === id);
+    if (item) {
+      updateQuantity(id, item.quantity + 1);
+    }
+  }, [cartItems, updateQuantity]);
+
+  // Decrease quantity
+  const decreaseQuantity = useCallback((id) => {
+    const item = cartItems.find((item) => item.id === id);
+    if (item) {
+      updateQuantity(id, item.quantity - 1);
+    }
+  }, [cartItems, updateQuantity]);
+
+  // Select/Deselect item
+  const selectItem = useCallback((id) => {
     setCartItems((prevItems) =>
       prevItems.map((item) =>
         item.id === id ? { ...item, selected: !item.selected } : item
       )
     );
-  };
+  }, []);
 
-  // Get total price of all items in cart
-  const totalPrice = () => {
-    return cartItems.reduce((acc, item) => acc + item.price * item.quantity, 0);
-  };
+  // Select all items
+  const selectAllItems = useCallback((selected = true) => {
+    setCartItems((prevItems) =>
+      prevItems.map((item) => ({ ...item, selected }))
+    );
+  }, []);
 
-  // Get total price of selected items in cart
-  const selectedItemsTotal = () => {
-    return cartItems
-      .filter((item) => item.selected)
-      .reduce((acc, item) => acc + item.price * item.quantity, 0);
-  };
+  // Memoized calculations
+  const cartCalculations = useMemo(() => {
+    const totals = cartItems.reduce(
+      (acc, item) => {
+        const itemTotal = item.price * item.quantity;
+        return {
+          total: acc.total + itemTotal,
+          selectedTotal: item.selected ? acc.selectedTotal + itemTotal : acc.selectedTotal,
+          itemCount: acc.itemCount + item.quantity,
+          selectedCount: item.selected ? acc.selectedCount + item.quantity : acc.selectedCount,
+        };
+      },
+      { total: 0, selectedTotal: 0, itemCount: 0, selectedCount: 0 }
+    );
 
-  // Order all selected items
-  const orderSelectedItems = () => {
-    const selectedItems = cartItems.filter((item) => item.selected);
-    if (selectedItems.length > 0) {
-      console.log('Order placed for selected items:', selectedItems);
-      // You can replace this with API call or other logic
-      clearCart();  // Optionally clear cart after order is placed
-    } else {
-      console.log('No items selected to order.');
+    return {
+      ...totals,
+      hasItems: cartItems.length > 0,
+      selectedItems: cartItems.filter((item) => item.selected),
+      isEmpty: cartItems.length === 0,
+    };
+  }, [cartItems]);
+
+  // Order selected items
+  const orderSelectedItems = useCallback(async () => {
+    try {
+      const selectedItems = cartItems.filter((item) => item.selected);
+      if (selectedItems.length === 0) {
+        toast.error('No items selected');
+        return;
+      }
+
+      // Process order (replace with your order logic)
+      console.log('Processing order for:', selectedItems);
+      
+      toast.success('Order placed successfully!');
+      
+      // Remove ordered items
+      setCartItems((prevItems) => prevItems.filter((item) => !item.selected));
+    } catch (error) {
+      console.error('Error processing order:', error);
+      toast.error('Failed to process order');
     }
-  };
+  }, [cartItems]);
 
-  // Order individual item
-  const orderItem = (id) => {
-    const orderedItem = cartItems.find((item) => item.id === id);
-    if (orderedItem) {
-      console.log('Ordering item:', orderedItem);
-      // You can replace this with API call or other logic
-      removeFromCart(id);  // Optionally remove item after order is placed
-    }
-  };
+  // Additional utility functions
+  const isItemInCart = useCallback((id) => 
+    cartItems.some(item => item.id === id)
+  , [cartItems]);
+
+  const getItemQuantity = useCallback((id) => 
+    cartItems.find(item => item.id === id)?.quantity || 0
+  , [cartItems]);
 
   const value = {
+    // Cart state
     cartItems,
+    isLoading,
+    ...cartCalculations,
+
+    // Core functions
     addToCart,
     removeFromCart,
     clearCart,
+    updateQuantity,
     increaseQuantity,
     decreaseQuantity,
+
+    // Selection functions
     selectItem,
-    totalPrice,
-    selectedItemsTotal,
+    selectAllItems,
+
+    // Order functions
     orderSelectedItems,
-    orderItem,
+
+    // Utility functions
+    isItemInCart,
+    getItemQuantity,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
