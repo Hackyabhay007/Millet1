@@ -134,7 +134,7 @@ function Order() {
                         <h3 className="font-semibold">Need Help?</h3>
                     </div>
                     <p className="text-sm text-gray-600">
-                        Contact our support team at support@example.com
+                        Contact our support team at support@purikam.com
                     </p>
                 </div>
             </div>

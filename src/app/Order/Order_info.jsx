@@ -171,7 +171,7 @@ function Checkout() {
   // Cart check
   useEffect(() => {
     if (!isLoading && cartItems.length === 0) {
-      router.push('/Cart');
+      router.push('/History');
     }
   }, [cartItems, isLoading, router]);
 
