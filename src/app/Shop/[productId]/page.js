@@ -121,7 +121,7 @@ const ProductDetails = ({ params }) => {
   };
 
   const handleRelatedProductClick = (id) => {
-    router.push(`/shop/${id}`);
+    router.push(`/Shop/${id}`);
   };
 
   if (loading) {
