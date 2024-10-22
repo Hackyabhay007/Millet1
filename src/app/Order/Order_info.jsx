@@ -104,9 +104,9 @@ const OrderSuccessModal = ({ isOpen, orderId }) => {
           <h2 className="text-2xl font-semibold mb-2">Thank You for Your Order!</h2>
           {/* // eslint-disable-next-line react/no-unescaped-entities
 <p className="text-gray-600 mb-2">Order ID: {orderId}</p> */}
-          <p className="text-gray-500 mb-6">
+          {/* <p className="text-gray-500 mb-6">
             We'll send you an email with your order details and tracking information.
-          </p>
+          </p> */}
           <div className="space-y-3">
             <button
               onClick={() => window.location.href = '/History'}
