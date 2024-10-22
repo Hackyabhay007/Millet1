@@ -102,9 +102,8 @@ const OrderSuccessModal = ({ isOpen, orderId }) => {
             <i className="ri-check-line text-2xl text-green-600"></i>
           </div>
           <h2 className="text-2xl font-semibold mb-2">Thank You for Your Order!</h2>
-          // eslint-disable-next-line react/no-unescaped-entities
-<p className="text-gray-600 mb-2">Order ID: {orderId}</p>
-
+          {/* // eslint-disable-next-line react/no-unescaped-entities
+<p className="text-gray-600 mb-2">Order ID: {orderId}</p> */}
           <p className="text-gray-500 mb-6">
             We'll send you an email with your order details and tracking information.
           </p>
