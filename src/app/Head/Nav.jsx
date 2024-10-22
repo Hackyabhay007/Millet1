@@ -6,6 +6,7 @@ import { auth } from '@/app/firebase'; // Adjust the path according to your fire
 import { signOut } from 'firebase/auth';
 import { useRouter } from 'next/navigation';
 import 'remixicon/fonts/remixicon.css';
+import { motion } from 'framer-motion';
 
 const Nav = () => {
   const router = useRouter();
@@ -45,6 +46,7 @@ const Nav = () => {
     e.preventDefault();
     if (searchQuery.trim()) {
       console.log("Searching for:", searchQuery);
+      // Implement search functionality here
     }
   };
 
@@ -59,7 +61,7 @@ const Nav = () => {
   };
 
   return (
-    <nav className="bg-green-500 font-afacadFlux max-w-screen p-4">
+    <nav className="bg-green-500 font-afacadFlux p-4 shadow-lg">
       <div className="container mx-auto flex justify-between items-center">
         {/* Mobile Menu Icon */}
         <div className="md:hidden">
@@ -75,28 +77,20 @@ const Nav = () => {
         {/* Logo and Nav Links */}
         <div className="flex-1 flex justify-between items-center">
           <Link href="/">
-            <div className="hidden md:flex items-center">
-              <img
-                src="https://i.ibb.co/VSfMLj9/purikam-logo.png"
-                alt="Logo"
-                className="h-20"
-              />
-            </div>
+            <img
+              src="https://i.ibb.co/VSfMLj9/purikam-logo.png"
+              alt="Logo"
+              className="h-20 hidden md:block"
+            />
           </Link>
 
           {/* Centered Nav Links */}
           <div className="hidden md:flex items-center space-x-10 mx-auto text-lg font-bold">
-            <Link href="/" className="text-white hover:text-gray-200">HOME</Link>
-            <Link href="/Shop"><p className="text-white hover:text-gray-200">SHOP</p></Link>
-            <Link href="/About_us">
-              <p className="text-white hover:text-gray-200">ABOUT US</p>
-            </Link>
-            <Link href="/Track_order">
-              <p className="text-white hover:text-gray-200">TRACK ORDER</p>
-            </Link>
-            <Link href="/contact">
-              <p className="text-white hover:text-gray-200">CONTACT US</p>
-            </Link>
+            <Link href="/" className="text-white hover:text-gray-200 transition duration-300">HOME</Link>
+            <Link href="/Shop" className="text-white hover:text-gray-200 transition duration-300">SHOP</Link>
+            <Link href="/About_us" className="text-white hover:text-gray-200 transition duration-300">ABOUT US</Link>
+            <Link href="/Track_order" className="text-white hover:text-gray-200 transition duration-300">TRACK ORDER</Link>
+            <Link href="/contact" className="text-white hover:text-gray-200 transition duration-300">CONTACT US</Link>
           </div>
         </div>
 
@@ -120,7 +114,12 @@ const Nav = () => {
 
             {/* Profile Dropdown Menu */}
             {isProfileOpen && (
-              <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50">
+              <motion.div 
+                initial={{ opacity: 0, y: -10 }} 
+                animate={{ opacity: 1, y: 0 }} 
+                exit={{ opacity: 0, y: -10 }} 
+                className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg z-50"
+              >
                 {!loading && (
                   <div className="py-1">
                     {user ? (
@@ -133,14 +132,9 @@ const Nav = () => {
                             <i className="ri-history-line mr-2"></i>Order History
                           </p>
                         </Link>
-                        {/* <Link href="/profile">
-                          <p className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-                            <i className="ri-user-settings-line mr-2"></i>Profile Settings
-                          </p>
-                        </Link> */}
                         <button
                           onClick={handleLogout}
-                          className="block w-full text-left px-4 py-2 text-sm text-red-700 hover:bg-gray-100"
+                          className="block w-full text-left px-4 py-2 text-red-700 hover:bg-gray-100"
                         >
                           <i className="ri-logout-box-line mr-2"></i>Logout
                         </button>
@@ -161,7 +155,7 @@ const Nav = () => {
                     )}
                   </div>
                 )}
-              </div>
+              </motion.div>
             )}
           </div>
 
@@ -206,25 +200,15 @@ const Nav = () => {
       >
         <div className="flex flex-col items-center h-full text-xl font-semibold justify-center">
           <img
-            src="https://gcdnb.pbrd.co/images/vJFrQP8Fgx9X.png?o=1"
+            src="https://i.ibb.co/VSfMLj9/purikam-logo.png"
             alt="Logo"
             className="h-14 mb-2 rounded-sm"
           />
-          <Link href="/" className="text-white py-2">
-            Home
-          </Link>
-          <Link href="/Shop">
-            <p className="text-white py-2">Shop</p>
-          </Link>
-          <Link href="/About_us" className="text-white py-2">
-            About Us
-          </Link>
-          <Link href="/Track_order" className="text-white py-2">
-            Track Order
-          </Link>
-          <Link href="/contact" className="text-white py-2">
-            Contact Us
-          </Link>
+          <Link href="/" className="text-white py-2 hover:text-gray-200">Home</Link>
+          <Link href="/Shop" className="text-white py-2 hover:text-gray-200">Shop</Link>
+          <Link href="/About_us" className="text-white py-2 hover:text-gray-200">About Us</Link>
+          <Link href="/Track_order" className="text-white py-2 hover:text-gray-200">Track Order</Link>
+          <Link href="/contact" className="text-white py-2 hover:text-gray-200">Contact Us</Link>
           {user && (
             <button
               onClick={handleLogout}

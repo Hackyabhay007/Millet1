@@ -14,16 +14,16 @@ const categories = [
 
 function ShopCatalog({ onCategoryClick }) {
   return (
-    <div className="relative bg-green-50 min-h-screen py-10">
+    <div className="relative bg-green-50 min-h-screen py-10 overflow-hidden">
       {/* Background Image */}
       <div className="absolute top-0 left-0 w-full h-full bg-cover bg-center opacity-20" style={{ backgroundImage: 'url(https://your-background-image-url.jpg)' }} />
 
       {/* Watermark */}
       <div className="absolute top-0 left-0 w-full h-full flex justify-center items-center">
-        <h1 className="text-green-700 opacity-5 text-9xl font-bold animate-watermark">
-          GreenStupe
-        </h1>
-      </div>
+          <h1 className="text-green-700 opacity-5 text-9xl font-bold animate-watermark whitespace-nowrap"> {/* Added whitespace-nowrap */}
+            GreenStupe
+          </h1>
+        </div>
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <h2 className="text-3xl font-extrabold text-green-700 mb-8 text-center animate-fade-in">

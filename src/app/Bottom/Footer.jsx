@@ -4,7 +4,7 @@ import Link from "next/link";
 
 function Footer() {
   return (
-    <div className="bg-green-700 font-afacadFlux text-white py-8 md:px-4">
+    <div className="bg-green-500 font-afacadFlux text-white py-8 md:px-4">
       {/* Top Section: Logo, Text, and Email Input */}
       <div className="flex flex-col md:flex-row gap-10 justify-center items-center mb-8">
         <div className="flex items-center">
@@ -36,11 +36,11 @@ function Footer() {
         <div>
           <h3 className="font-bold text-xl mb-2">Helpful Links</h3>
           <ul >
-            <li>Our Story</li>
+            {/* <li>Our Story</li> */}
           <Link href="/Shop"><li className='hover:text-slate-400'>All Products</li></Link>
-            <li>Recipes</li>
+            {/* <li>Recipes</li>
             <li>Blog</li>
-            <li>Lab Reports</li>
+            <li>Lab Reports</li> */}
           </ul>
         </div>
 
