@@ -4,14 +4,14 @@ import React, { useEffect, useState, useContext, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { db } from '@/app/firebase';
 import { doc, getDoc, getDocs, collection, query, where } from 'firebase/firestore';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
-import 'remixicon/fonts/remixicon.css';
+import { ChevronLeft } from 'lucide-react';
 import { CartContext } from '@/Context/CartContext';
 import Footer from '@/app/Bottom/Footer';
 import Nav from '@/app/Head/Nav';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader from '@/app/components/Loader';
+import { toast } from 'react-hot-toast';
 
 const ProductDetails = ({ params }) => {
   const { productId, category } = params;
@@ -26,7 +26,7 @@ const ProductDetails = ({ params }) => {
   const [addedToCart, setAddedToCart] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const router = useRouter();
-  const { addToCart, isItemInCart, getItemQuantity, increaseQuantity, decreaseQuantity } = useContext(CartContext);
+  const { addToCart, isItemInCart, getItemQuantity } = useContext(CartContext);
   const scrollContainer = useRef(null);
 
   const scroll = (direction) => {
@@ -130,17 +130,23 @@ const ProductDetails = ({ params }) => {
 
   const handleAddToCart = () => {
     if (product) {
-      addToCart(product, quantity);
+      console.log('Adding to cart:', product); // Log the product being added
+      addToCart(product, quantity); // Call addToCart with the product and quantity
       setAddedToCart(true);
+      toast.success('Item added to cart!');
       setTimeout(() => {
         setAddedToCart(false);
       }, 1000);
+    } else {
+      toast.error('No product found to add to cart.');
     }
   };
 
+  
   const handleBuyNow = () => {
     if (product) {
       addToCart(product, quantity);
+      toast.success('Item added to cart! Redirecting to cart...'); // Show toast notification
       handleOpenCart();
     }
   };
@@ -209,7 +215,7 @@ const ProductDetails = ({ params }) => {
             {/* Quantity Selector */}
             <div className="flex items-center mb-4">
               <button 
-                onClick={() => decreaseQuantity(product.id)}
+                onClick={() => setQuantity(Math.max(1, quantity - 1))}
                 className="border border-gray-300 px-3 py-1 rounded-l"
                 disabled={quantity === 1}
               >
@@ -219,10 +225,10 @@ const ProductDetails = ({ params }) => {
                 type="number" 
                 className="border-t border-b border-gray-300 w-16 text-center py-1" 
                 value={quantity}
-                onChange={(e) => setQuantity(parseInt(e.target.value))}
+                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value)))}
               />
               <button 
-                onClick={() => increaseQuantity(product.id)}
+                onClick={() => setQuantity(quantity + 1)}
                 className="border border-gray-300 px-3 py-1 rounded-r"
               >
                 +

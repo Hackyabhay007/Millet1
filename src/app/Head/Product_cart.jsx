@@ -1,9 +1,9 @@
 "use client";
 
 import React, { useState, useEffect, useContext, useRef } from "react";
-import { db } from "../firebase";
 import { collection, getDocs } from "firebase/firestore";
 import { CartContext } from "@/Context/CartContext";
+import { db } from "../firebase";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Loader } from "lucide-react";
@@ -33,7 +33,6 @@ function ProductCart() {
     const fetchProducts = async () => {
       try {
         setLoading(true);
-
         const productsCollection = collection(db, "products");
         const productSnapshot = await getDocs(productsCollection);
 
@@ -63,9 +62,7 @@ function ProductCart() {
 
   return (
     <div className="overflow-hidden bg-green-100 font-afacadFlux md:p-8">
-      <h1 className="pl-8 py-10 text-3xl text-gray-700 font-bold">
-        Top Products
-      </h1>
+      <h1 className="pl-8 py-10 text-3xl text-gray-700 font-bold">Top Products</h1>
 
       <div className="relative group px-4 sm:px-0">
         {/* Left Arrow */}
@@ -119,12 +116,10 @@ function ProductCart() {
       </div>
 
       {/* Load More Products Button */}
-  
-      {/* Load More Products Button */}
-      <div className="flex justify-end px-11 mt-6">
+      <div className="flex justify-center px-11 mt-6">
         <Link href="/Shop">
           <button className="bg-green-600 text-white py-2 px-4 rounded-lg transition-colors hover:bg-green-500 hover:text-gray-900">
-            More Products..
+            More Products
           </button>
         </Link>
       </div>

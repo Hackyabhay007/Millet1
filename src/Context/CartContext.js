@@ -55,58 +55,62 @@ export const CartProvider = ({ children }) => {
 
   // Validate product data
   const validateProduct = useCallback((product) => {
-    if (!product?.id || typeof product.price !== 'number' || typeof product.stock !== 'number') {
-      throw new Error('Invalid product data');
+    // Check if product is an object and has the required fields
+    if (typeof product !== 'object' || product === null) {
+        throw new Error('Product must be an object');
     }
-    return true;
-  }, []);
-
+    if (!product.id || !product.name || typeof product.price !== 'number' || typeof product.stock !== 'number') {
+        throw new Error('Invalid product data');
+    }
+    return true; // If all checks pass, return true
+}, []);
   // Add to cart
   const addToCart = useCallback((product, quantity = 1) => {
     try {
-      validateProduct(product);
-      
-      if (quantity < 1) throw new Error('Invalid quantity');
+  console.log('Validating product:', product); // Log the product data
+           validateProduct(product); // Ensure product is valid
+           console.log('Product is valid:', product); // Log valid product
 
-      setCartItems((prevItems) => {
-        const existingProduct = prevItems.find((item) => item.id === product.id);
-        
-        if (existingProduct) {
-          const newQuantity = existingProduct.quantity + quantity;
-          
-          if (newQuantity > product.stock) {
-            toast.error(`Only ${product.stock} items available`);
-            return prevItems;
-          }
+           if (quantity < 1) throw new Error('Invalid quantity');
+        setCartItems((prevItems) => {
+            const existingProduct = prevItems.find((item) => item.id === product.id);
+            
+            if (existingProduct) {
+                const newQuantity = existingProduct.quantity + quantity;
+                
+                if (newQuantity > product.stock) {
+                    toast.error(`Only ${product.stock} items available`);
+                    return prevItems;
+                }
 
-          const updatedItems = prevItems.map((item) =>
-            item.id === product.id
-              ? { ...item, quantity: newQuantity }
-              : item
-          );
+                const updatedItems = prevItems.map((item) =>
+                    item.id === product.id
+                        ? { ...item, quantity: newQuantity }
+                        : item
+                );
 
-          toast.success('Cart updated successfully!');
-          return updatedItems;
-        } else {
-          if (quantity > product.stock) {
-            toast.error(`Only ${product.stock} items available`);
-            return prevItems;
-          }
+                toast.success('Cart updated successfully!');
+                return updatedItems;
+            } else {
+                if (quantity > product.stock) {
+                    toast.error(`Only ${product.stock} items available`);
+                    return prevItems;
+                }
 
-          toast.success('Item added to cart!');
-          return [...prevItems, { 
-            ...product,
-            quantity,
-            selected: false,
-            addedAt: new Date().toISOString()
-          }];
-        }
-      });
+                toast.success('Item added to cart!');
+                return [...prevItems, { 
+                    ...product,
+                    quantity,
+                    selected: false,
+                    addedAt: new Date().toISOString()
+                }];
+            }
+        });
     } catch (error) {
-      console.error('Error adding to cart:', error);
-      toast.error('Failed to add item to cart');
+        console.error('Error adding to cart:', error);
+        toast.error('Failed to add item to cart: ' + error.message);
     }
-  }, [validateProduct]);
+}, [validateProduct]);
 
   // Remove from cart
   const removeFromCart = useCallback((id) => {
