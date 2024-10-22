@@ -52,7 +52,7 @@ const Nav = () => {
     try {
       await signOut(auth);
       setIsProfileOpen(false);
-      router.push('/shop');
+      router.push('/');
     } catch (error) {
       console.error('Error signing out:', error);
     }
