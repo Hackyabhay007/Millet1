@@ -35,9 +35,9 @@ const Orders = () => {
                         <thead>
                             <tr className="bg-gray-200 text-gray-600 uppercase text-sm leading-normal">
                                 <th className="py-3 px-6 text-left">Order ID</th>
-                                <th className="py-3 px-6 text-left">Customer</th>
+                                <th className="py-3 px-6 text-left">Product Name</th>
+                                <th className="py-3 px-6 text-left">Amount</th>
                                 <th className="py-3 px-6 text-left">Status</th>
-                                <th className="py-3 px-6 text-left">Order Time</th>
                                 <th className="py-3 px-6 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -45,12 +45,13 @@ const Orders = () => {
                             {orders.map(order => (
                                 <tr key={order.id} className="border-b hover:bg-gray-100">
                                     <td className="py-3 px-6">{order.id}</td>
-                                    <td className="py-3 px-6">{order.customerName}</td>
-                                    <td className="py-3 px-6">{order.status}</td>
-                                    <td className="py-3 px-6">{new Date(order.orderTime).toLocaleString()}</td>
+                                    <td className="py-3 px-6">{order.items.map(item => item.name).join(', ')}</td>
+                                    <td className="py-3 px-6">₹{order.totalAmount.toFixed(2)}</td>
+                                    {/* Show "Pending" as the default status */}
+                                    <td className="py-3 px-6">Pending</td>
                                     <td className="py-3 px-6 text-center">
                                         <Link href={`/Admin/orders/${order.id}`}>
-                                            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">View</button>
+                                            <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Edit</button>
                                         </Link>
                                     </td>
                                 </tr>

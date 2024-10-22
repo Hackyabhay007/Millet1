@@ -1,9 +1,11 @@
 "use client";
-import React, { useContext } from "react";
+import React, { useContext, useEffect, useState } from "react";
 import { CartContext } from "@/Context/CartContext";
 import "remixicon/fonts/remixicon.css"; // Import Remix Icons
 import Link from "next/link";
 import { useRouter } from "next/navigation"; // Import useRouter for redirect
+import { db } from "../firebase"; // Import Firestore
+import { doc, getDoc } from "firebase/firestore"; // Import Firestore methods
 
 function Cart() {
   const {
@@ -15,42 +17,69 @@ function Cart() {
     selectItem,
     totalPrice,
     selectedItemsTotal,
-    orderSelectedItems, // Added for ordering selected items
   } = useContext(CartContext);
 
   const router = useRouter(); // Initialize router
+  const [productImages, setProductImages] = useState({}); // State to hold product images
+
+  // Fetch images for each product in the cart
+  useEffect(() => {
+    const fetchImages = async () => {
+      const images = {};
+
+      for (const item of cartItems) {
+        // Ensure item is defined and has an id
+        if (item && item.id && !images[item.id]) {
+          try {
+            const productRef = doc(db, "products", item.id); // Reference to the product document
+            const productSnap = await getDoc(productRef); // Fetch the product document
+
+            if (productSnap.exists()) {
+              images[item.id] = productSnap.data().mainImage; // Get mainImage from Firestore
+            } else {
+              console.error("No such document:", item.id);
+            }
+          } catch (error) {
+            console.error("Error fetching product:", item.id, error);
+          }
+        }
+      }
+      setProductImages(images); // Update state with fetched images
+    };
+
+    fetchImages();
+  }, [cartItems]); // Fetch images whenever cartItems change
 
   // Function to handle ordering individual item and redirecting to Order page
   const handleOrderItem = (item) => {
-    // Construct URL with query parameters, including the image
+    if (!productImages[item.id]) return; // Safeguard to ensure image exists
+
     const query = new URLSearchParams({
       id: item.id,
       name: item.name,
       price: item.price,
       quantity: item.quantity,
-      image: item.image, // Pass the image URL as well
+      image: productImages[item.id], // Get the image from state
     }).toString();
 
-    // Use router.push() with the query string as part of the URL
     router.push(`/Order?${query}`);
   };
 
   // Function to handle ordering all selected items
-  const handleOrderSelectedItems = () => {
-    // Get the selected items
-    const selectedItems = cartItems.filter(item => item.selected);
+  // Function to handle ordering all selected items
+const handleOrderSelectedItems = () => {
+  const selectedItems = cartItems.filter(item => item.selected);
+  if (selectedItems.length > 0) {
+    const selectedIds = selectedItems.map(item => item.id);
+    const query = new URLSearchParams({
+      items: JSON.stringify(selectedIds) // Only send IDs
+    }).toString();
+    router.push(`/Order?${query}`);
+  } else {
+    alert("No items selected!");
+  }
+};
 
-    // If there are selected items, redirect to the Order page with those items
-    if (selectedItems.length > 0) {
-      // Pass all selected items to the Order page as a JSON string in query
-      const selectedItemsString = JSON.stringify(selectedItems);
-
-      // Encode the selected items string to ensure safe transmission
-      router.push(`/Order?items=${encodeURIComponent(selectedItemsString)}`);
-    } else {
-      alert("No items selected!");
-    }
-  };
 
   if (cartItems.length === 0) {
     return (
@@ -64,8 +93,12 @@ function Cart() {
   return (
     <div className="container font-afacadFlux mx-auto p-6">
       <div className="flex justify-between">
-      <h2 className="text-2xl font-semibold mb-6">Your Cart </h2>
-    <Link href="/History"><button className="text-xl bg-gray-600 my-2 px-4 hover:bg-gray-400 text-white rounded"><i class="ri-history-line "></i>history</button></Link>
+        <h2 className="text-2xl font-semibold mb-6">Your Cart </h2>
+        <Link href="/History">
+          <button className="text-xl bg-gray-600 my-2 px-4 hover:bg-gray-400 text-white rounded">
+            <i className="ri-history-line "></i> History
+          </button>
+        </Link>
       </div>
       {/* Cart Items */}
       <div className="space-y-6">
@@ -79,7 +112,7 @@ function Cart() {
               <input
                 type="checkbox"
                 checked={item.selected || false}
-                onChange={() => selectItem(item.id)} // Now works as expected
+                onChange={() => selectItem(item.id)}
                 className="h-6 w-6 cursor-pointer"
               />
             </div>
@@ -88,7 +121,7 @@ function Cart() {
             <div className="flex flex-col md:flex-row items-center space-x-3">
               {/* Product Image */}
               <img
-                src={item.image}
+                src={productImages[item.id]} // Use the fetched image URL
                 alt={item.name}
                 className="w-20 h-20 object-cover rounded-md"
               />
@@ -110,9 +143,7 @@ function Cart() {
                 >
                   -
                 </button>
-                <span className="px-4 text-lg font-semibold">
-                  {item.quantity}
-                </span>
+                <span className="px-4 text-lg font-semibold">{item.quantity}</span>
                 <button
                   onClick={() => increaseQuantity(item.id)}
                   className="bg-gray-700 text-xl font-bold text-white md:py-1 px-3 md:px-5 rounded-full"
@@ -123,7 +154,7 @@ function Cart() {
 
               {/* Order Button for Individual Item */}
               <button
-                onClick={() => handleOrderItem(item)} // Redirect to Order page with details
+                onClick={() => handleOrderItem(item)}
                 className="ml-4 font-semibold text-xl rounded-full bg-green-500 text-white px-6 py-2"
               >
                 Order
@@ -143,12 +174,8 @@ function Cart() {
 
       {/* Total Price */}
       <div className="mt-6 space-y-4">
-        <h3 className="text-xl font-bold">
-          Selected Items Total: ₹{selectedItemsTotal()}
-        </h3>
-        <h3 className="text-lg text-gray-400 font-semibold">
-          All Product Total: ₹{totalPrice()}
-        </h3>
+        <h3 className="text-xl font-bold">Selected Items Total: ₹{selectedItemsTotal()}</h3>
+        <h3 className="text-lg text-gray-400 font-semibold">All Product Total: ₹{totalPrice()}</h3>
       </div>
 
       {/* Order Selected Items Button */}
