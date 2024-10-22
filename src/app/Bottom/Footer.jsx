@@ -38,9 +38,7 @@ function Footer() {
           <ul >
             <li>Our Story</li>
           <Link href="/Shop"><li className='hover:text-slate-400'>All Products</li></Link>
-            <li>Recipes</li>
-            <li>Blog</li>
-            <li>Lab Reports</li>
+     
           </ul>
         </div>
 
