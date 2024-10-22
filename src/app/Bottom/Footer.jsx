@@ -4,7 +4,7 @@ import Link from "next/link";
 
 function Footer() {
   return (
-    <div className="bg-green-700 font-afacadFlux text-white py-8 px-4">
+    <div className="bg-green-700 font-afacadFlux text-white py-8 md:px-4">
       {/* Top Section: Logo, Text, and Email Input */}
       <div className="flex flex-col md:flex-row gap-10 justify-center items-center mb-8">
         <div className="flex items-center">
@@ -12,7 +12,7 @@ function Footer() {
          <img src="https://gcdnb.pbrd.co/images/0Tt4D5KPyeNU.png?o=1" alt="Logo" className="w-28 h-auto" />
         </div>
         <div className="text-center mx-4">
-          <h2 className="text-xl font-bold">“We are reviving the traditional ways of old Bharat”</h2>
+          <h2 className="text-xl font-bold">“We are reviving the  traditional ways of old Bharat”</h2>
         </div>
         {/* <div className="flex flex-col items-center">
           <label htmlFor="email" className="mb-2">Get updated</label>
@@ -30,12 +30,12 @@ function Footer() {
       <hr className="border-white mb-8" />
 
       {/* Bottom Section: Four Columns */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-10 px-20">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-10 px-10 text-justify md:px-20">
         
         {/* Column 1: Helpful Links */}
         <div>
           <h3 className="font-bold text-xl mb-2">Helpful Links</h3>
-          <ul>
+          <ul >
             <li>Our Story</li>
           <Link href="/Shop"><li className='hover:text-slate-400'>All Products</li></Link>
             <li>Recipes</li>

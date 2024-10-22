@@ -6,7 +6,7 @@ function Refund() {
       {/* Company Overview */}
       <header className="mb-8 text-center">
         <h1 className="text-4xl font-bold text-green-800">Rewa State Farms</h1>
-        <p className="text-lg italic text-gray-600">"Bringing Nature’s Goodness to Your Home"</p>
+        <p className="text-lg italic text-gray-600">&quot;Bringing Nature&apos;s Goodness to Your Home&quot;</p>
       </header>
 
       <section className="text-gray-700 space-y-6">
@@ -25,7 +25,7 @@ function Refund() {
 
           <h3 className="text-xl font-semibold mt-6">2. Late or Missing Refunds (if applicable)</h3>
           <p>
-            If you haven't received your refund yet, first check your bank account. Then contact your credit card company or bank, as processing times can vary. If you’ve done all this and still haven't received your refund, please contact us at <a href="mailto:rewastatefarms@gmail.com" className="text-blue-500 underline">rewastatefarms@gmail.com</a>.
+            If you haven&apos;t received your refund yet, first check your bank account. Then contact your credit card company or bank, as processing times can vary. If you&apos;ve done all this and still haven&apos;t received your refund, please contact us at <a href="mailto:rewastatefarms@gmail.com" className="text-blue-500 underline">rewastatefarms@gmail.com</a>.
           </p>
 
           <h3 className="text-xl font-semibold mt-6">3. Sale Items (if applicable)</h3>
