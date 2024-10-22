@@ -37,11 +37,11 @@ function HomeImg() {
 
   if (!heroSections.length) return <div>Loading...</div>;
 
-  const { title, subheading, buttonName, link, image, background } = heroSections[currentIndex];
+  const {title, subheading, buttonName, link, image, background } = heroSections[currentIndex];
 
   return (
     <div 
-      className={`flex font-afacadFlux flex-col md:flex-row items-center h-screen relative ${background}`}  // Dynamically apply background class
+      className={`flex font-afacadFlux flex-col md:flex-row items-center h-auto relative ${background}`}  // Dynamically apply background class
     >
       {/* Left Section: Title, Subheading, and Button */}
       <div className="flex flex-col justify-center items-center text-center md:text-left w-full md:w-1/2 z-10 p-4">
