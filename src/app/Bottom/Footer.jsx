@@ -1,5 +1,6 @@
 import React from 'react';
-// import Link from "next/link";
+// import { Link } from 'react-router-dom';
+import Link from "next/link";
 
 function Footer() {
   return (
@@ -36,7 +37,7 @@ function Footer() {
           <h3 className="font-bold text-xl mb-2">Helpful Links</h3>
           <ul>
             <li>Our Story</li>
-            <li>All Products</li>
+          <Link href="/Shop"><li className='hover:text-slate-400'>All Products</li></Link>
             <li>Recipes</li>
             <li>Blog</li>
             <li>Lab Reports</li>
@@ -47,10 +48,10 @@ function Footer() {
         <div>
           <h3 className="font-bold text-xl mb-2">Policies</h3>
           <ul>
-            <li>Refund Policy</li>
-            <li>Shipping Policy</li>
-            <li>Privacy Policy</li>
-            <li>Terms of Service</li>
+          <Link href="/Refund_policy"><li className='hover:text-slate-400'>Refund Policy</li></Link>
+          <Link href="/Ship_policy"><li className='hover:text-slate-400'>Shipping Policy</li></Link>
+           <Link href="/Privacy_policy"><li className='hover:text-slate-400'>Privacy Policy</li></Link>
+           <Link href="/Term_and_condition"><li className='hover:text-slate-400'>Terms and conditions</li></Link>
           </ul>
         </div>
 

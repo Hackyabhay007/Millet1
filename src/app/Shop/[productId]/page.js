@@ -76,15 +76,19 @@ const ProductDetails = ({ params }) => {
     try {
       if (productData.categories && productData.categories.length > 0) {
         setLoadingRelated(true); // Start loading related products
+  
+        // Fetch products that match at least one category
         const relatedQuery = query(
           collection(db, 'products'),
-          where('categories', 'array-contains-any', productData.categories), // Match at least one category
-          where('id', '!=', productId) // Exclude the current product
+          where('categories', 'array-contains-any', productData.categories) // Match at least one category
         );
-
+  
         const relatedSnapshot = await getDocs(relatedQuery);
-        const relatedProductsData = relatedSnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-
+        const relatedProductsData = relatedSnapshot.docs
+          .map(doc => ({ id: doc.id, ...doc.data() }))
+          .filter(product => product.id !== productData.id); // Filter out the current product in the code
+  
+        console.log("Related products:", relatedProductsData);
         setRelatedProducts(relatedProductsData.length > 0 ? relatedProductsData : []); // Set related products if found
       } else {
         setRelatedProducts([]); // No categories to find related products
@@ -96,6 +100,7 @@ const ProductDetails = ({ params }) => {
       setLoadingRelated(false); // Stop loading related products
     }
   };
+  
 
   // Handle adding to cart
   const handleAddToCart = () => {
