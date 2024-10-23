@@ -184,7 +184,7 @@ const handleAddToCart = () => {
   
   const handleBuyNow = () => {
     if (product) {
-      addToCart(product, quantity);
+      addToCart(product, 1);
       toast.success('Item added to cart! Redirecting to cart...'); // Show toast notification
       handleOpenCart();
     }
