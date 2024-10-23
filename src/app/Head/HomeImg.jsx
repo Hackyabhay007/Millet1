@@ -4,6 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { db } from '../firebase'; // Update this path to your Firebase setup
 import { collection, getDocs } from 'firebase/firestore';
 import Loader from '../components/Loader';
+
 function HomeImg() {
   const [heroSections, setHeroSections] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -34,16 +35,21 @@ function HomeImg() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + heroSections.length) % heroSections.length);
   };
 
-  if (!heroSections.length) return <div><Loader/></div>;
+  // Early return if heroSections is empty
+  if (!heroSections.length) return <div><Loader /></div>;
 
-  const { title, subheading, buttonName, link, image, background } = heroSections[currentIndex];
+  // Ensure currentIndex is within bounds
+  const currentSection = heroSections[currentIndex] || {};
+
+  // Destructure with fallback to avoid error
+  const { title = '', subheading = '', buttonName = '', link = '', image = '', background = '' } = currentSection;
 
   return (
     <div
       className={`flex flex-col md:flex-row items-center justify-center relative ${background} bg-cover bg-center h-screen`}
     >
       {/* Text Section */}
-      <div className="flex flex-col justify-center items-center text-center md:text-left w-full md:w-1/2 z-10 p-6 md:p-12  backdrop-blur-md">
+      <div className="flex flex-col justify-center items-center text-center md:text-left w-full md:w-1/2 z-10 p-6 md:p-12 backdrop-blur-md">
         <h1 className="text-3xl md:text-5xl font-bold text-green-700">{title}</h1>
         <p className="mt-4 text-lg md:text-xl">{subheading}</p>
         <a
