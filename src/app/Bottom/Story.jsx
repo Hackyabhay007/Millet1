@@ -15,9 +15,7 @@ function Story() {
         <div className="text-slate-600">
           <h1 className="text-5xl font-semibold">Our Story</h1>
           <p className="mt-4  text-gray-500 text-xl">
-            This is a brief description of our story. We started with a vision to create quality products and provide exceptional service. 
-            
-          </p>
+          Purikam is a startup rooted in Rewa, Madhya Pradesh, focused on reviving traditional agriculture and promoting organic, millet-based food products. We aim to provide healthy, ready-to-eat products while empowering local farmers through sustainable farming practices. By combining ancient wisdom with modern techniques, Purikam contributes to rural development, community well-being, and environmental sustainability.       </p>
         </div>
       </div>
     </div>
