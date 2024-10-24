@@ -10,12 +10,26 @@ import { CartContext } from '@/Context/CartContext';
 import Nav from "@/app/Head/Nav";
 import Footer from "@/app/Bottom/Footer";
 import Image from 'next/image';
-
+import Script from 'next/script';
 
 // Utility functions
 const formatPrice = (price) => {
   if (typeof price !== 'number') return '₹0';
   return `₹${price.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g, ',')}`;
+};
+
+
+
+// First, add the Razorpay script safely
+const loadRazorpay = () => {
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
 };
 
 // Input Component
@@ -91,32 +105,48 @@ const OrderSummary = ({ cartItems, subtotal }) => (
 );
 
 // Success Modal Component
-const OrderSuccessModal = ({ isOpen, orderId }) => {
+const OrderSuccessModal = ({ isOpen, orderId, paymentMethod }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center">
-      <div className="bg-white rounded-lg p-8 max-w-md w-full mx-4">
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center animate-fadeIn">
+      <div className="bg-white rounded-xl p-8 max-w-md w-full mx-4 shadow-2xl animate-scaleIn">
         <div className="text-center">
-          <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-green-100 mb-4">
-            <i className="ri-check-line text-2xl text-green-600"></i>
+          <div className="mx-auto flex items-center justify-center h-16 w-16 rounded-full bg-green-100 mb-6 animate-bounce">
+            <svg
+              className="h-8 w-8 text-green-600"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                d="M5 13l4 4L19 7"
+              />
+            </svg>
           </div>
-          <h2 className="text-2xl font-semibold mb-2">Thank You for Your Order!</h2>
-          {/* // eslint-disable-next-line react/no-unescaped-entities
-<p className="text-gray-600 mb-2">Order ID: {orderId}</p> */}
-          {/* <p className="text-gray-500 mb-6">
-            We'll send you an email with your order details and tracking information.
-          </p> */}
-          <div className="space-y-3">
+          <h2 className="text-3xl font-bold mb-4">Thank You!</h2>
+          <div className="bg-gray-50 rounded-lg p-4 mb-6">
+            <p className="text-sm text-gray-500">Order ID</p>
+            <p className="text-lg font-semibold text-gray-800">#{orderId}</p>
+          </div>
+          <p className="text-gray-600 mb-8">
+            {paymentMethod === 'cod'
+              ? 'Your order has been placed successfully. Please keep cash ready at the time of delivery.'
+              : 'Payment successful! Your order is being processed and will be delivered soon.'}
+          </p>
+          <div className="space-y-4">
             <button
               onClick={() => window.location.href = '/History'}
-              className="w-full bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors"
+              className="w-full bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-all transform hover:scale-105"
             >
-              View Order History
+              Track Your Order
             </button>
             <button
               onClick={() => window.location.href = '/Shop'}
-              className="w-full bg-gray-100 text-gray-700 px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
+              className="w-full bg-white text-green-600 border-2 border-green-600 px-6 py-3 rounded-lg hover:bg-green-50 transition-all"
             >
               Continue Shopping
             </button>
@@ -147,15 +177,14 @@ function Checkout() {
     pincode: '',
     country: 'India',
     paymentMethod: 'cod'
-  });
+});
+
   const [errors, setErrors] = useState({});
 
-  // Auth check and data population
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       if (currentUser) {
         setUser(currentUser);
-        // Pre-fill form data
         setFormData(prev => ({
           ...prev,
           email: currentUser.email || '',
@@ -171,59 +200,89 @@ function Checkout() {
     return () => unsubscribe();
   }, [router]);
 
-  // Cart check
   useEffect(() => {
     if (!isLoading && cartItems.length === 0) {
       router.push('/History');
     }
   }, [cartItems, isLoading, router]);
-
   const validateForm = () => {
     const newErrors = {};
     const phoneRegex = /^\d{10}$/;
     const pincodeRegex = /^\d{6}$/;
-    const nameRegex = /^[a-zA-Z\s]{1,50}$/;
+    // Modified name regex to better handle real names
+    const nameRegex = /^[a-zA-Z\s'-]{1,50}$/;
 
-    if (!formData.firstName.trim() || !nameRegex.test(formData.firstName))
-      newErrors.firstName = 'Please enter a valid first name';
-      
-    if (!formData.lastName.trim() || !nameRegex.test(formData.lastName))
-      newErrors.lastName = 'Please enter a valid last name';
-      
-    if (!formData.email.trim() || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
-      newErrors.email = 'Please enter a valid email address';
-      
-    if (!formData.phone.trim() || !phoneRegex.test(formData.phone))
-      newErrors.phone = 'Please enter a valid 10-digit phone number';
-      
-    if (!formData.address.trim())
-      newErrors.address = 'Please enter your complete address';
-      
-    if (!formData.city.trim() || !nameRegex.test(formData.city))
-      newErrors.city = 'Please enter a valid city name';
-      
-    if (!formData.state.trim() || !nameRegex.test(formData.state))
-      newErrors.state = 'Please enter a valid state name';
-      
-    if (!formData.pincode.trim() || !pincodeRegex.test(formData.pincode))
-      newErrors.pincode = 'Please enter a valid 6-digit pincode';
+    // Debug logging
+    console.log('Validating form data:', {
+        firstName: formData.firstName,
+        email: formData.email
+    });
+
+    // First Name validation with better handling
+    if (!formData.firstName || formData.firstName.trim() === '') {
+        newErrors.firstName = 'First name is required';
+    } else if (!nameRegex.test(formData.firstName.trim())) {
+        newErrors.firstName = 'Please enter a valid first name';
+    }
+
+    // Email validation with better handling
+    if (!formData.email || formData.email.trim() === '') {
+        newErrors.email = 'Email is required';
+    } else {
+        // More permissive email regex
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(formData.email.trim())) {
+            newErrors.email = 'Please enter a valid email address';
+        }
+    }
+
+    // Rest of the validations remain the same
+    if (!formData.lastName?.trim() || !nameRegex.test(formData.lastName.trim())) {
+        newErrors.lastName = 'Please enter a valid last name';
+    }
+
+    if (!formData.phone?.trim() || !phoneRegex.test(formData.phone.trim())) {
+        newErrors.phone = 'Please enter a valid 10-digit phone number';
+    }
+
+    if (!formData.address?.trim()) {
+        newErrors.address = 'Please enter your complete address';
+    }
+
+    if (!formData.city?.trim() || !nameRegex.test(formData.city.trim())) {
+        newErrors.city = 'Please enter a valid city name';
+    }
+
+    if (!formData.state?.trim() || !nameRegex.test(formData.state.trim())) {
+        newErrors.state = 'Please enter a valid state name';
+    }
+
+    if (!formData.pincode?.trim() || !pincodeRegex.test(formData.pincode.trim())) {
+        newErrors.pincode = 'Please enter a valid 6-digit pincode';
+    }
+
+    // Debug logging
+    console.log('Validation errors:', newErrors);
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
-  };
+};
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      toast.error('Please fill all required fields correctly');
-      return;
-    }
+// Update the handleSubmit function
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  if (!validateForm()) {
+    toast.error('Please fill all required fields correctly');
+    return;
+  }
 
-    try {
+  try {
+    if (formData.paymentMethod === 'online') {
+      await handlePayment();
+    } else {
       setProcessing(true);
-
-      // Create order in Firebase
+      // Handle COD order...
       const orderData = {
         userId: user.uid,
         userEmail: user.email,
@@ -246,25 +305,184 @@ function Checkout() {
           subtotal: item.price * item.quantity
         })),
         totalAmount: cartTotal,
-        paymentMethod: formData.paymentMethod,
+        paymentMethod: 'cod',
         status: 'pending',
         paymentStatus: 'pending'
       };
 
       const orderRef = await addDoc(collection(db, "orders"), orderData);
       setOrderId(orderRef.id);
-      
-      // Clear cart and show success
       clearCart();
       setShowSuccessModal(true);
-      
-    } catch (error) {
-      console.error('Order error:', error);
-      toast.error('Failed to process order. Please try again.');
-    } finally {
-      setProcessing(false);
     }
-  };
+  } catch (error) {
+    console.error('Order error:', error);
+    toast.error('Failed to process order. Please try again.');
+  } finally {
+    setProcessing(false);
+  }
+};
+
+ 
+const handlePayment = async () => {
+  try {
+    setProcessing(true);
+    const isLoaded = await loadRazorpay();
+    if (!isLoaded) {
+      toast.error('Payment gateway failed to load. Please try again.');
+      return;
+    }
+
+    // Create order data
+    const orderData = {
+      amount: Math.round(cartTotal * 100),
+      currency: 'INR',
+      receipt: `order_${Date.now()}`,
+    };
+
+    // Initialize Razorpay options
+    const options = {
+      key: "rzp_test_OCMTdiTaga98x7",
+      amount: orderData.amount,
+      currency: orderData.currency,
+      name: "Purkam",
+      description: "Order Payment",
+      //image: "your-logo-url",
+      handler: async function (response) {
+        try {
+          console.log('Razorpay Response:', response); // Debug log
+
+          // Create payment details object with null checks
+          const paymentDetails = {
+            razorpayPaymentId: response.razorpay_payment_id || null,
+            razorpayOrderId: response.razorpay_order_id || null,
+            razorpaySignature: response.razorpay_signature || null,
+            paymentTime: serverTimestamp()
+          };
+
+          // Handle successful payment
+          const orderDetails = {
+            userId: user.uid,
+            userEmail: user.email,
+            orderDate: serverTimestamp(),
+            shippingAddress: {
+              firstName: formData.firstName,
+              lastName: formData.lastName,
+              address: formData.address,
+              city: formData.city,
+              state: formData.state,
+              pincode: formData.pincode,
+              country: formData.country,
+              phone: formData.phone
+            },
+            items: cartItems.map(item => ({
+              productId: item.id,
+              name: item.name,
+              price: item.price,
+              quantity: item.quantity,
+              subtotal: item.price * item.quantity
+            })),
+            totalAmount: cartTotal,
+            paymentMethod: 'online',
+            paymentStatus: 'paid',
+            status: 'pending',
+            paymentDetails: paymentDetails,
+            paymentResponse: response // Store complete response
+          };
+
+          console.log('Saving order details:', orderDetails); // Debug log
+
+          // Save order to Firestore
+          const orderRef = await addDoc(collection(db, "orders"), orderDetails);
+          console.log('Order saved with ID:', orderRef.id); // Debug log
+          
+          setOrderId(orderRef.id);
+          clearCart();
+          setShowSuccessModal(true);
+
+        } catch (error) {
+          console.error('Error saving order:', error);
+          // Store failed order with error details
+          const failedOrderDetails = {
+            userId: user.uid,
+            userEmail: user.email,
+            orderDate: serverTimestamp(),
+            paymentMethod: 'online',
+            paymentStatus: 'failed',
+            status: 'failed',
+            error: error.message,
+            paymentResponse: response,
+            amount: cartTotal,
+            items: cartItems.map(item => ({
+              productId: item.id,
+              name: item.name,
+              quantity: item.quantity
+            }))
+          };
+
+          // Save failed order for tracking
+          await addDoc(collection(db, "failed_orders"), failedOrderDetails);
+          
+          toast.error('Payment successful but order creation failed. Our team will contact you soon.');
+        }
+      },
+      prefill: {
+        name: `${formData.firstName} ${formData.lastName}`,
+        email: formData.email,
+        contact: formData.phone,
+      },
+      notes: {
+        address: formData.address,
+        shipping_address: `${formData.address}, ${formData.city}, ${formData.state}, ${formData.pincode}`,
+      },
+      theme: {
+        color: "#16a34a"
+      },
+      modal: {
+        ondismiss: function() {
+          setProcessing(false);
+          toast.error('Payment cancelled. Please try again.');
+        }
+      }
+    };
+
+    // Create Razorpay instance and open payment modal
+    const razorpay = new window.Razorpay(options);
+    
+    // Handle payment failure
+    razorpay.on('payment.failed', function (failedResponse) {
+      console.log('Payment failed:', failedResponse); // Debug log
+      setProcessing(false);
+      
+      // Save failed payment details
+      const failedPayment = {
+        userId: user.uid,
+        timestamp: serverTimestamp(),
+        error: failedResponse.error,
+        amount: cartTotal,
+        items: cartItems.map(item => ({
+          productId: item.id,
+          name: item.name,
+          quantity: item.quantity
+        }))
+      };
+      
+      addDoc(collection(db, "failed_payments"), failedPayment);
+      
+      toast.error('Payment failed: ' + (failedResponse.error?.description || 'Please try again'));
+    });
+
+    razorpay.open();
+
+  } catch (error) {
+    console.error('Payment initialization error:', error);
+    setProcessing(false);
+    toast.error('Failed to initialize payment. Please try again.');
+  }
+};
+
+
+
 
   if (isLoading) {
     return (
@@ -276,7 +494,6 @@ function Checkout() {
 
   return (
     <>
-
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4 lg:px-8">
           <div className="lg:grid lg:grid-cols-2 lg:gap-x-12 xl:gap-x-16">
@@ -300,13 +517,13 @@ function Checkout() {
                     <InputField
                       label="First Name"
                       value={formData.firstName}
-                      onChange={(e) => setFormData({...formData, firstName: e.target.value})}
+                      onChange={(e) => setFormData({...formData,firstName: e.target.value})}
                       error={errors.firstName}
                     />
                     <InputField
                       label="Last Name"
                       value={formData.lastName}
-                      onChange={(e) => setFormData({...formData, lastName: e.target.value})}
+                      onChange={(e) => setFormData({...formData,lastName: e.target.value})}
                       error={errors.lastName}
                     />
                   </div>
@@ -368,20 +585,53 @@ function Checkout() {
                   <div className="border-t pt-6">
                     <h2 className="text-lg font-semibold mb-4">Payment Method</h2>
                     <div className="space-y-4">
-                      <label className="flex items-center space-x-3">
+                      <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
                         <input
                           type="radio"
                           checked={formData.paymentMethod === 'cod'}
                           onChange={() => setFormData({...formData, paymentMethod: 'cod'})}
                           className="h-4 w-4 text-green-600 focus:ring-green-500"
                         />
-                        <span>Cash on Delivery (COD)</span>
+                        <div>
+                          <span className="font-medium">Cash on Delivery (COD)</span>
+                          <p className="text-sm text-gray-500">Pay when you receive your order</p>
+                        </div>
+                      </label>
+
+                      <label className="flex items-center space-x-3 p-4 border rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                        <input
+                          type="radio"
+                          checked={formData.paymentMethod === 'online'}
+                          onChange={() => setFormData({...formData, paymentMethod: 'online'})}
+                          className="h-4 w-4 text-green-600 focus:ring-green-500"
+                        />
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div>
+                              <span className="font-medium">Pay Online</span>
+                              <p className="text-sm text-gray-500">Credit/Debit Card, UPI, Netbanking</p>
+                            </div>
+                            <img 
+                              src="/razorpay-icon.png" 
+                              alt="Razorpay" 
+                              className="h-8"
+                            />
+                          </div>
+                        </div>
                       </label>
                     </div>
                   </div>
 
-           {/* Submit Button */}
-           <button
+                  {/* Order Total */}
+                  <div className="border-t pt-6">
+                    <div className="flex justify-between text-lg font-semibold">
+                      <span>Total Amount:</span>
+                      <span className="text-green-600">{formatPrice(cartTotal)}</span>
+                    </div>
+                  </div>
+
+                  {/* Submit Button */}
+                  <button
                     type="submit"
                     disabled={processing}
                     className="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center space-x-2"
@@ -392,12 +642,12 @@ function Checkout() {
                           <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                           <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                         </svg>
-                        Processing Order...
+                        {formData.paymentMethod === 'online' ? 'Initiating Payment...' : 'Processing Order...'}
                       </>
                     ) : (
                       <>
                         <i className="ri-secure-payment-line"></i>
-                        <span>Place Order</span>
+                        <span>{formData.paymentMethod === 'online' ? 'Pay Now' : 'Place Order'}</span>
                       </>
                     )}
                   </button>
@@ -422,18 +672,10 @@ function Checkout() {
       <OrderSuccessModal 
         isOpen={showSuccessModal}
         orderId={orderId}
+        paymentMethod={formData.paymentMethod}
       />
 
-      <Footer />
-    </>
-  );
-}
-
-// Export the page component
-export default function CheckoutPage() {
-  return (
-    <>
-      <Checkout />
+      {/* Toaster for notifications */}
       <Toaster
         position="top-right"
         toastOptions={{
@@ -456,6 +698,21 @@ export default function CheckoutPage() {
           },
         }}
       />
+    </>
+  );
+}
+
+// Export the page component
+export default function CheckoutPage() {
+  return (
+    <>
+      <Script
+        src="https://checkout.razorpay.com/v1/checkout.js"
+        strategy="lazyOnload"
+      />
+      <Nav />
+      <Checkout />
+      <Footer />
     </>
   );
 }

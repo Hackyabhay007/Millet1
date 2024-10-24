@@ -8,9 +8,9 @@ const Order_info = dynamic(() => import('./Order_info'), { ssr: false });
 export default function OrderPage() {
     return (
       <>
-        <Nav />
+      
         <Order_info /> {/* Render client-side only */}
-        <Footer />
+        
       </>
     );
 }

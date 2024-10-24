@@ -77,7 +77,7 @@ const Dashboard = () => {
 
     return (
         <AdminLayout>
-            <h1 className="text-3xl font-afacadFlux font-bold">Admin Dashboard</h1>
+            <h1 className="text-3xl font-afacadFlux font-bold h-full">Admin Dashboard</h1>
             <div className="mt-4 grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Total Products Card */}
                 <div className="bg-blue-200 p-4 rounded-lg shadow-lg flex flex-col items-center">
