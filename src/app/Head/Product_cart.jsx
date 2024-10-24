@@ -233,7 +233,7 @@ function ProductCart({
                       ₹{product.price}
                     </p>
                     {/* Tags Display */}
-                    {product.tagNames && product.tagNames.length > 0 && (
+                    {/* {product.tagNames && product.tagNames.length > 0 && (
                       <div className="flex flex-wrap gap-1 mt-2">
                         {product.tagNames.slice(0, 2).map((tagName, index) => (
                           <span 
@@ -244,7 +244,7 @@ function ProductCart({
                           </span>
                         ))}
                       </div>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
