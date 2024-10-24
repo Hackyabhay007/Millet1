@@ -51,7 +51,7 @@ function Footer() {
           <Link href="/Refund_policy"><li className='hover:text-slate-400'>Refund Policy</li></Link>
           <Link href="/Ship_policy"><li className='hover:text-slate-400'>Shipping Policy</li></Link>
            <Link href="/Privacy_policy"><li className='hover:text-slate-400'>Privacy Policy</li></Link>
-           <Link href="/Term_and_condition"><li className='hover:text-slate-400'>Terms and conditions</li></Link>
+           <Link href="/Term_and_condition"><li className='hover:text-slate-400'>Terms & Conditons</li></Link>
           </ul>
         </div>
 
@@ -75,6 +75,21 @@ function Footer() {
         </div>
 
       </div>
+     
+        {/* Attribution */}
+        <div className="text-center border-t border-white/40 pt-2">
+          <p className="text-sm text-white/80">
+            Developed by{' '}
+            <Link 
+              href="https://flyyourtech.com" 
+              className="hover:text-white transition-colors duration-200"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              FlyYourtech
+            </Link>
+          </p>
+        </div>
     </div>
   );
 }

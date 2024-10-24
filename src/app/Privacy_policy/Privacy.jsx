@@ -104,7 +104,7 @@ function Privacy() {
 
       {/* Footer */}
       <footer className="mt-12 text-center">
-        <p className="text-gray-500 text-sm">&copy; 2024 Rewa State Farms. All rights reserved.</p>
+        <p className="text-gray-500 text-sm">&copy; 2024 Purikam. All rights reserved.</p>
       </footer>
     </div>
   );

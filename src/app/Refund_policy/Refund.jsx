@@ -5,7 +5,7 @@ function Refund() {
     <div className="min-h-screen font-afacadFlux bg-gray-100 p-8 flex flex-col justify-start">
       {/* Company Overview */}
       <header className="mb-8 text-center">
-        <h1 className="text-4xl font-bold text-green-800">Rewa State Farms</h1>
+        <h1 className="text-4xl font-bold text-green-800">Purikam</h1>
         <p className="text-lg italic text-gray-600">&quot;Bringing Nature&apos;s Goodness to Your Home&quot;</p>
       </header>
 
@@ -59,7 +59,7 @@ function Refund() {
 
       {/* Footer */}
       <footer className="mt-12 text-center">
-        <p className="text-gray-500 text-sm">&copy; 2024 Rewa State Farms. All rights reserved.</p>
+        <p className="text-gray-500 text-sm">&copy; 2024 Purikam. All rights reserved.</p>
       </footer>
     </div>
   );

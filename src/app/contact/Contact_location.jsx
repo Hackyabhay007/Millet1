@@ -9,7 +9,7 @@ function Contact_location() {
                 {/* Card 1: Contact Number */}
                 <div className="bg-white p-6 rounded-lg shadow-lg">
                     <h2 className="text-xl font-semibold mb-2">Contact  Number</h2>
-                    <p className="text-gray-700">+91 120-4244430</p>
+                    <p className="text-gray-700">+91 99812 97707</p>
                     
                 </div>
 

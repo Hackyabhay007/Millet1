@@ -17,20 +17,20 @@ const geistMono = localFont({
 
 // Metadata configuration
 export const metadata = {
-    title: 'Rewa State Farms - Bringing Nature\'s Goodness to Your Home',
-    description: 'Rewa State Farms offers organic, eco-friendly, and locally sourced agro products. Committed to sustainability, community development, and health & well-being.',
+    title: 'Purikam - Bringing Nature\'s Goodness to Your Home',
+    description: 'Purikam offers organic, eco-friendly, and locally sourced agro products. Committed to sustainability, community development, and health & well-being.',
     viewport: 'width=device-width, initial-scale=1.0',
     charset: 'UTF-8',
     openGraph: {
-        title: 'Rewa State Farms - Bringing Nature\'s Goodness to Your Home',
-        description: 'Rewa State Farms offers organic, eco-friendly, and locally sourced agro products. Committed to sustainability, community development, and health & well-being.',
+        title: 'Purikam - Bringing Nature\'s Goodness to Your Home',
+        description: 'Purikam offers organic, eco-friendly, and locally sourced agro products. Committed to sustainability, community development, and health & well-being.',
         type: 'website',
         image: 'https://gcdnb.pbrd.co/images/vJFrQP8Fgx9X.png?o=1',
         url: 'https://www.rewastatefarms.com',
     },
     twitter: {
-        title: 'Rewa State Farms - Bringing Nature\'s Goodness to Your Home',
-        description: 'Rewa State Farms offers organic, eco-friendly, and locally sourced agro products. Committed to sustainability, community development, and health & well-being.',
+        title: 'Purikam - Bringing Nature\'s Goodness to Your Home',
+        description: 'Purikam offers organic, eco-friendly, and locally sourced agro products. Committed to sustainability, community development, and health & well-being.',
         image: 'https://example.com/twitter-image.jpg',
         card: 'summary_large_image',
     },

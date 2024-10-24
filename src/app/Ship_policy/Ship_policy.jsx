@@ -11,7 +11,7 @@ function ShipPolicy() {
       <section className="text-gray-700 space-y-6">
         {/* Shipping Policy Overview */}
         <div>
-          <h2 className="text-2xl font-semibold mb-2">At Rewa State Farms</h2>
+          <h2 className="text-2xl font-semibold mb-2">At Purikam</h2>
           <p>
             We are committed to ensuring that your orders are delivered promptly and efficiently. This shipping policy outlines our practices regarding the shipping of your orders.
           </p>
@@ -61,7 +61,7 @@ function ShipPolicy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Questions and Contact Information</h2>
           <p>
-            If you have any questions regarding our shipping policy, please contact us at <a href="mailto:rewastatefarms@gmail.com" className="text-blue-500 underline">rewastatefarms@gmail.com</a> or call us at <strong>Mobile: +91 120-4244430</strong>.
+            If you have any questions regarding our shipping policy, please contact us at <a href="mailto:rewastatefarms@gmail.com" className="text-blue-500 underline">rewastatefarms@gmail.com</a> or call us at <strong>Mobile: +91 9981297707</strong>.
           </p>
         </div>
 
@@ -76,7 +76,7 @@ function ShipPolicy() {
 
       {/* Footer */}
       <footer className="mt-12 text-center">
-        <p className="text-gray-500 text-sm">&copy; 2024 Rewa State Farms. All rights reserved.</p>
+        <p className="text-gray-500 text-sm">&copy; 2024 Purikam. All rights reserved.</p>
       </footer>
     </div>
   );
