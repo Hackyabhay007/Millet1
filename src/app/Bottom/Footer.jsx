@@ -12,7 +12,7 @@ function Footer() {
          <img src="https://i.ibb.co/VSfMLj9/purikam-logo.png" alt="Logo" className="h-16 rounded" />
         </div>
         <div className="text-center mx-4">
-          <h2 className="text-xl font-bold">“We are reviving the  traditional ways of old Bharat”</h2>
+          <h2 className="text-xl font-bold">“Harvesting Vindhya Nourishing India”</h2>
         </div>
         {/* <div className="flex flex-col items-center">
           <label htmlFor="email" className="mb-2">Get updated</label>

@@ -1,25 +1,46 @@
 "use client";
 
 import React, { useEffect, useState } from 'react';
-import { db } from '../firebase'; // Update this path to your Firebase setup
+import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import Loader from '../components/Loader';
+import Loader from '../components/ui/loader';
 
 function HomeImg() {
   const [heroSections, setHeroSections] = useState([]);
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     const fetchHeroSections = async () => {
-      const querySnapshot = await getDocs(collection(db, 'heroSections'));
-      const sections = querySnapshot.docs.map(doc => doc.data());
-      setHeroSections(sections);
+      try {
+        setIsLoading(true);
+        const querySnapshot = await getDocs(collection(db, 'heroSections'));
+        const sections = querySnapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        
+        if (sections.length === 0) {
+          setError('No hero sections found');
+          return;
+        }
+        
+        setHeroSections(sections);
+      } catch (err) {
+        console.error('Error fetching hero sections:', err);
+        setError('Failed to load content');
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchHeroSections();
   }, []);
 
   useEffect(() => {
+    if (heroSections.length === 0) return;
+
     const intervalId = setInterval(() => {
       handleNext();
     }, 3000);
@@ -28,21 +49,48 @@ function HomeImg() {
   }, [heroSections]);
 
   const handleNext = () => {
+    if (heroSections.length === 0) return;
     setCurrentIndex((prevIndex) => (prevIndex + 1) % heroSections.length);
   };
 
   const handlePrev = () => {
+    if (heroSections.length === 0) return;
     setCurrentIndex((prevIndex) => (prevIndex - 1 + heroSections.length) % heroSections.length);
   };
 
-  // Early return if heroSections is empty
-  if (!heroSections.length) return <div><Loader /></div>;
+  if (isLoading) return (
+    <div className="h-screen flex items-center justify-center">
+      <Loader />
+    </div>
+  );
 
-  // Ensure currentIndex is within bounds
-  const currentSection = heroSections[currentIndex] || {};
+  if (error) return (
+    <div className="h-screen flex items-center justify-center text-red-500">
+      {error}
+    </div>
+  );
 
-  // Destructure with fallback to avoid error
-  const { title = '', subheading = '', buttonName = '', link = '', image = '', background = '' } = currentSection;
+  if (!heroSections.length) return (
+    <div className="h-screen flex items-center justify-center">
+      No content available
+    </div>
+  );
+
+  const currentSection = heroSections[currentIndex];
+  if (!currentSection) return (
+    <div className="h-screen flex items-center justify-center">
+      Error loading content
+    </div>
+  );
+
+  const { 
+    title = 'Default Title', 
+    subheading = 'Default Subheading', 
+    buttonName = 'Learn More', 
+    link = '#', 
+    image = '', 
+    background = 'bg-gray-100' 
+  } = currentSection;
 
   return (
     <div
@@ -68,9 +116,9 @@ function HomeImg() {
         >
           {heroSections.map((section, index) => (
             <img
-              key={index}
+              key={section.id || index}
               src={section.image}
-              alt={section.title}
+              alt={section.title || `Slide ${index + 1}`}
               className="w-full h-full object-cover flex-shrink-0 rounded-lg"
             />
           ))}
@@ -78,20 +126,24 @@ function HomeImg() {
       </div>
 
       {/* Carousel Navigation Buttons */}
-      <div className="absolute top-1/2 left-0 right-0 flex justify-between items-center transform -translate-y-1/2 z-20">
-        <button
-          onClick={handlePrev}
-          className="border border-gray-500 bg-white p-2 rounded-full shadow-lg hover:bg-gray-200 hover:border-gray-700 transition duration-200"
-        >
-          &lt;
-        </button>
-        <button
-          onClick={handleNext}
-          className="border border-gray-500 bg-white p-2 rounded-full shadow-lg hover:bg-gray-200 hover:border-gray-700 transition duration-200"
-        >
-          &gt;
-        </button>
-      </div>
+      {heroSections.length > 1 && (
+        <div className="absolute top-1/2 left-0 right-0 flex justify-between items-center transform -translate-y-1/2 z-20 px-4">
+          <button
+            onClick={handlePrev}
+            className="border border-gray-500 bg-white/80 p-2 rounded-full shadow-lg hover:bg-gray-200 hover:border-gray-700 transition duration-200"
+            aria-label="Previous slide"
+          >
+            &lt;
+          </button>
+          <button
+            onClick={handleNext}
+            className="border border-gray-500 bg-white/80 p-2 rounded-full shadow-lg hover:bg-gray-200 hover:border-gray-700 transition duration-200"
+            aria-label="Next slide"
+          >
+            &gt;
+          </button>
+        </div>
+      )}
     </div>
   );
 }
