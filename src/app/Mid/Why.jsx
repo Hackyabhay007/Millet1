@@ -97,13 +97,14 @@ function Why() {
 
       {/* Mission Statement */}
       <div className="max-w-4xl mx-auto px-4 py-16 text-center">
-        <h2 className="text-3xl font-bold text-green-800 mb-6">Our Mission</h2>
-        <p className="text-lg text-gray-700 leading-relaxed">
-          At Purikam, we're committed to reviving traditional agriculture while embracing modern sustainability. 
-          Our journey begins with local farmers and ends with healthy, happy customers - creating a positive impact 
-          at every step.
-        </p>
-      </div>
+  <h2 className="text-3xl font-bold text-green-800 mb-6">Our Mission</h2>
+  <p className="text-lg text-gray-700 leading-relaxed">
+    At Purikam, we&apos;re committed to reviving traditional agriculture while embracing modern sustainability.
+    Our journey begins with local farmers and ends with healthy, happy customers - creating a positive impact
+    at every step.
+  </p>
+</div>
+
 
       {/* Features Section */}
       <div className="bg-green-300 py-16">
