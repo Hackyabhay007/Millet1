@@ -2,31 +2,180 @@
 
 import React, { useState } from 'react';
 import 'remixicon/fonts/remixicon.css';
+import { toast, Toaster } from 'react-hot-toast';
 
 function Order() {
     const [searchType, setSearchType] = useState('orderId');
     const [inputValue, setInputValue] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
+    const [trackingDetails, setTrackingDetails] = useState(null);
 
     const handleSearchTypeChange = (e) => {
         setSearchType(e.target.value);
         setInputValue('');
         setError('');
+        setTrackingDetails(null);
     };
 
-    const handleSubmit = () => {
+    const handleSubmit = async () => {
         setError('');
+        setTrackingDetails(null);
+
         if (!inputValue.trim()) {
             setError(`Please enter a valid ${searchType === 'orderId' ? 'Order ID' : 'AWB'}`);
             return;
         }
+
         setIsLoading(true);
-        // Simulate API call
-        setTimeout(() => {
+        try {
+            const endpoint = searchType === 'orderId' 
+                ? `/api/orders/track/${inputValue.trim()}`
+                : `/api/shipping/track-awb/${inputValue.trim()}`;
+
+            const response = await fetch(endpoint);
+            const data = await response.json();
+            console.log(data);
+            
+            if (data.status === 'error') {
+                throw new Error(data.message || 'Failed to fetch tracking details');
+            }
+
+            setTrackingDetails(data.tracking_info);
+            toast.success('Tracking details fetched successfully');
+        } catch (error) {
+            console.error('Tracking error:', error);
+            setError(error.message || 'Failed to track shipment');
+            toast.error('Failed to fetch tracking details');
+        } finally {
             setIsLoading(false);
-            console.log(`Searching for ${inputValue} with type: ${searchType}`);
-        }, 1500);
+        }
+    };
+
+    const formatDate = (dateString) => {
+        try {
+            return new Date(dateString).toLocaleString('en-IN', {
+                day: 'numeric',
+                month: 'long',
+                year: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+        } catch (e) {
+            return dateString;
+        }
+    };
+
+    const renderTrackingDetails = () => {
+
+        if (!trackingDetails?.tracking_data) {
+            return (
+                <div className="mt-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+                    <div className="text-center">
+                        <i className="ri-time-line text-4xl text-gray-400 mb-2"></i>
+                        <h3 className="text-lg font-semibold mb-2">Order Processing</h3>
+                        <p className="text-gray-600">
+                            Your order is being processed. Tracking details will be available soon.
+                        </p>
+                    </div>
+                </div>
+            );
+        }
+
+   
+        const trackingData = trackingDetails.tracking_data;
+        const shipment = trackingData.shipment_track?.[0];
+
+        return (
+            <div className="mt-6 bg-white p-6 rounded-lg shadow-lg border border-gray-200">
+                {/* Header with Refresh Button */}
+                <div className="flex items-center justify-between mb-6">
+                    <h3 className="text-lg font-semibold">Tracking Details</h3>
+                    <button 
+                        onClick={handleSubmit}
+                        className="text-green-500 hover:text-green-600 flex items-center text-sm"
+                        disabled={isLoading}
+                    >
+                        <i className={`ri-refresh-line mr-1 ${isLoading ? 'animate-spin' : ''}`}></i>
+                        Refresh
+                    </button>
+                </div>
+
+                {/* Shipment Summary Cards */}
+                {shipment && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-gray-600">AWB Number</p>
+                            <p className="font-medium">{shipment.awb_code}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-gray-600">Current Status</p>
+                            <div className="flex items-center mt-1">
+                                <span className={`inline-block w-2 h-2 rounded-full mr-2 ${
+                                    shipment.current_status === 'DELIVERED' ? 'bg-green-500' : 'bg-yellow-500'
+                                }`}></span>
+                                <p className="font-medium">{shipment.current_status}</p>
+                            </div>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-gray-600">Destination</p>
+                            <p className="font-medium">{shipment.destination || 'Not available'}</p>
+                        </div>
+                        <div className="p-4 bg-gray-50 rounded-lg">
+                            <p className="text-sm text-gray-600">Expected Delivery</p>
+                            <p className="font-medium">
+                                {shipment.edd ? formatDate(shipment.edd) : 'Not available'}
+                            </p>
+                        </div>
+                    </div>
+                )}
+
+                {/* Tracking Timeline */}
+                {trackingData.shipment_track_activities && (
+                    <div className="mt-8">
+                        <h4 className="font-semibold mb-4">Shipping Updates</h4>
+                        <div className="space-y-4">
+                            {trackingData.shipment_track_activities.map((activity, index) => (
+                                <div key={index} className="relative pl-6 pb-4">
+                                    <div className="absolute left-0 top-2 h-full w-[2px] bg-green-200">
+                                        <div className={`absolute top-0 left-[-4px] w-[10px] h-[10px] rounded-full ${
+                                            index === 0 ? 'bg-green-500 ring-2 ring-green-200' : 'bg-green-200'
+                                        }`}></div>
+                                    </div>
+                                    <div className="bg-white p-4 rounded-lg border border-gray-100 shadow-sm">
+                                        <p className="font-medium text-green-600">{activity.activity}</p>
+                                        <p className="text-sm text-gray-600">
+                                            {formatDate(activity.date)}
+                                        </p>
+                                        {activity.location && (
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                <i className="ri-map-pin-line mr-1"></i>
+                                                {activity.location}
+                                            </p>
+                                        )}
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
+
+                {/* Track on Shiprocket Link */}
+                {trackingData.track_url && (
+                    <div className="mt-6 pt-6 border-t border-gray-200">
+                        <a 
+                            href={trackingData.track_url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center justify-center w-full px-4 py-2 text-sm font-medium text-green-600 bg-green-50 hover:bg-green-100 rounded-lg transition-colors"
+                        >
+                            <i className="ri-external-link-line mr-2"></i>
+                            Track on Shiprocket
+                        </a>
+                    </div>
+                )}
+            </div>
+        );
     };
 
     return (
@@ -126,18 +275,45 @@ function Order() {
                 </div>
             </div>
 
-            {/* Additional Info Cards */}
-            <div className="max-w-md mx-auto mt-6 grid grid-cols-1 gap-4">
+            {/* Tracking Details */}
+            {renderTrackingDetails()}
+
+            {/* Help Card */}
+            <div className="max-w-md mx-auto mt-6">
                 <div className="bg-white p-4 rounded-lg shadow-sm border border-gray-100">
                     <div className="flex items-center text-green-500 mb-2">
                         <i className="ri-customer-service-2-line mr-2"></i>
                         <h3 className="font-semibold">Need Help?</h3>
                     </div>
                     <p className="text-sm text-gray-600">
-                        Contact our support team at support@purikam.com
+                        Contact our support team at support@purkam.com
                     </p>
                 </div>
             </div>
+
+            {/* Toaster */}
+            <Toaster
+                position="top-right"
+                toastOptions={{
+                    duration: 3000,
+                    style: {
+                        background: '#333',
+                        color: '#fff',
+                    },
+                    success: {
+                        iconTheme: {
+                            primary: '#22c55e',
+                            secondary: '#fff',
+                        },
+                    },
+                    error: {
+                        iconTheme: {
+                            primary: '#ef4444',
+                            secondary: '#fff',
+                        },
+                    },
+                }}
+            />
         </div>
     );
 }
