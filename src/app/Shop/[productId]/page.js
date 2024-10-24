@@ -48,31 +48,82 @@ const ProductDetails = ({ params }) => {
 
   useEffect(() => {
     const fetchProductDetails = async () => {
-      if (!productId) return;
+        if (!productId) return;
 
-      try {
-        const productRef = doc(db, 'products', productId);
-        const productSnap = await getDoc(productRef);
+        try {
+            const productRef = doc(db, 'products', productId);
+            const productSnap = await getDoc(productRef);
 
-        if (productSnap.exists()) {
-          const productData = productSnap.data();
-          setProduct(productData);
-          setSelectedImage(productData.mainImage);
-          await fetchCategoryAndTagNames(productData);
-          await fetchRelatedProducts(productData);
-        } else {
-          setError('No such product found!');
+            if (productSnap.exists()) {
+                const productData = productSnap.data();
+                // Ensure to add the id from the document reference
+                setProduct({
+                    id: productId, // Use the productId passed to this component
+                    name: productData.name || '',
+                    price: typeof productData.price === 'number' ? productData.price : 0,
+                    stock: typeof productData.stock === 'number' ? productData.stock : 0,
+                    mainImage: productData.mainImage || '',
+                });
+                setSelectedImage(productData.mainImage);
+                await fetchCategoryAndTagNames(productData);
+                await fetchRelatedProducts(productData);
+            } else {
+                setError('No such product found!');
+            }
+        } catch (error) {
+            console.error('Error fetching product:', error);
+            setError('Error fetching product details. Please try again later.');
+        } finally {
+            setLoading(false);
         }
-      } catch (error) {
-        console.error('Error fetching product:', error);
-        setError('Error fetching product details. Please try again later.');
-      } finally {
-        setLoading(false);
-      }
     };
 
     fetchProductDetails();
-  }, [productId]);
+}, [productId]);
+
+const handleAddToCart = () => {
+  console.log('Current product before adding to cart:', product); // Log current product state
+
+  if (product) {
+      // Log each property of the product for clarity
+      console.log("Validating product properties:", {
+          id: productId,  // Using the document ID
+          name: product.name,
+          price: product.price,
+          stock: product.stock,
+      });
+
+      // Validate product properties
+      if (productId && typeof productId === 'string' && 
+          product.name && typeof product.name === 'string' && 
+          typeof product.price === 'number' && 
+          typeof product.stock === 'number') {
+
+          // Create a product object with the ID and its other properties
+          const productToAdd = {
+              id: productId, // Document ID
+              name: product.name,
+              price: product.price,
+              stock: product.stock,
+              mainImage: product.mainImage // if needed
+          };
+
+          addToCart(productToAdd, quantity); // Pass the new object to addToCart
+          setAddedToCart(true);
+          toast.success("Item added to cart!");
+          setTimeout(() => setAddedToCart(false), 1000);
+      } else {
+          toast.error("Product has invalid data.");
+          console.error("Invalid product data:", product); // Log invalid product data
+      }
+  } else {
+      toast.error("No product found to add to cart.");
+  }
+};
+
+
+
+  
 
   useEffect(() => {
     if (product) {
@@ -128,24 +179,12 @@ const ProductDetails = ({ params }) => {
     }
   };
 
-  const handleAddToCart = () => {
-    if (product) {
-      console.log('Adding to cart:', product); // Log the product being added
-      addToCart(product, quantity); // Call addToCart with the product and quantity
-      setAddedToCart(true);
-      toast.success('Item added to cart!');
-      setTimeout(() => {
-        setAddedToCart(false);
-      }, 1000);
-    } else {
-      toast.error('No product found to add to cart.');
-    }
-  };
+
 
   
   const handleBuyNow = () => {
     if (product) {
-      addToCart(product, quantity);
+      addToCart(product, 1);
       toast.success('Item added to cart! Redirecting to cart...'); // Show toast notification
       handleOpenCart();
     }

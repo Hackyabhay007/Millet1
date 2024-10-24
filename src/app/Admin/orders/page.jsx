@@ -1,9 +1,6 @@
-// ./src/app/Admin/orders/page.jsx
-
 "use client"; // Ensure this is a client component
 
 import React, { useEffect, useState } from 'react';
-import Sidebar from '@/app/Sidebar/Sidebar'; // Import the Sidebar component
 import { db } from '@/app/firebase';
 import { collection, getDocs } from 'firebase/firestore';
 import Link from 'next/link';
@@ -37,7 +34,7 @@ const Orders = () => {
                                 <th className="py-3 px-6 text-left">Order ID</th>
                                 <th className="py-3 px-6 text-left">Product Name</th>
                                 <th className="py-3 px-6 text-left">Amount</th>
-                                <th className="py-3 px-6 text-left">Status</th>
+                                <th className="py-3 px-6 text-left">Status</th> {/* Added Status Column */}
                                 <th className="py-3 px-6 text-center">Actions</th>
                             </tr>
                         </thead>
@@ -45,10 +42,11 @@ const Orders = () => {
                             {orders.map(order => (
                                 <tr key={order.id} className="border-b hover:bg-gray-100">
                                     <td className="py-3 px-6">{order.id}</td>
-                                    <td className="py-3 px-6">{order.items.map(item => item.name).join(', ')}</td>
-                                    <td className="py-3 px-6">₹{order.totalAmount.toFixed(2)}</td>
-                                    {/* Show "Pending" as the default status */}
-                                    <td className="py-3 px-6">Pending</td>
+                                    <td className="py-3 px-6">
+                                        {Array.isArray(order.items) ? order.items.map(item => item.name).join(', ') : 'No items'}
+                                    </td>
+                                    <td className="py-3 px-6">₹{typeof order.totalAmount === 'number' ? order.totalAmount.toFixed(2) : '0.00'}</td>
+                                    <td className="py-3 px-6">{order.status || 'Pending'}</td> {/* Display Status */}
                                     <td className="py-3 px-6 text-center">
                                         <Link href={`/Admin/orders/${order.id}`}>
                                             <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Edit</button>

@@ -35,7 +35,7 @@ export const metadata = {
         card: 'summary_large_image',
     },
     icons: {
-        icon: '/favicon.ico',
+        icon: 'https://i.ibb.co/VSfMLj9/purikam-logo.png',
     },
 };
 

@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import Loader from '../components/Loader';
+import Loader from '../components/ui/loader';
 
 function HomeImg() {
   const [heroSections, setHeroSections] = useState([]);
@@ -58,12 +58,30 @@ function HomeImg() {
     setCurrentIndex((prevIndex) => (prevIndex - 1 + heroSections.length) % heroSections.length);
   };
 
-  if (isLoading) return <div className="h-screen flex items-center justify-center"><Loader /></div>;
-  if (error) return <div className="h-screen flex items-center justify-center text-red-500">{error}</div>;
-  if (!heroSections.length) return <div className="h-screen flex items-center justify-center">No content available</div>;
+  if (isLoading) return (
+    <div className="h-screen flex items-center justify-center">
+      <Loader />
+    </div>
+  );
+
+  if (error) return (
+    <div className="h-screen flex items-center justify-center text-red-500">
+      {error}
+    </div>
+  );
+
+  if (!heroSections.length) return (
+    <div className="h-screen flex items-center justify-center">
+      No content available
+    </div>
+  );
 
   const currentSection = heroSections[currentIndex];
-  if (!currentSection) return <div className="h-screen flex items-center justify-center">Error loading content</div>;
+  if (!currentSection) return (
+    <div className="h-screen flex items-center justify-center">
+      Error loading content
+    </div>
+  );
 
   const { 
     title = 'Default Title', 
