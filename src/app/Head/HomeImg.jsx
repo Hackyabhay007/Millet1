@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { db } from '../firebase';
 import { collection, getDocs } from 'firebase/firestore';
-import Loader from '../components/ui/loader';
+import Loader from '../components/Loader';
 
 function HomeImg() {
   const [heroSections, setHeroSections] = useState([]);
