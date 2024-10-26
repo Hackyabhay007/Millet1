@@ -4,14 +4,14 @@ export const Schema = {
     "@type": "Organization",
     "name": "Purikam",
     "url": "https://purikam.com",
-    "logo": "https://purikam.com/logo.png", // Add your logo URL
+    "logo": "https://i.ibb.co/VSfMLj9/purikam-logo.png", // Add your logo URL
     "description": "Traditional and organic products from Rewa, Madhya Pradesh",
     "address": {
       "@type": "PostalAddress",
-      "streetAddress": "Your Street Address",
+      "streetAddress": "Near ajigarha bypass ",
       "addressLocality": "Rewa",
       "addressRegion": "Madhya Pradesh",
-      "postalCode": "Your Postal Code",
+      "postalCode": "486001",
       "addressCountry": "IN"
     },
     "contactPoint": {
@@ -33,7 +33,7 @@ export const Schema = {
     "@context": "https://schema.org",
     "@type": "Product",
     "name": product.name,
-    "image": product.image,
+    "image": product.mainImage,
     "description": product.description,
     "brand": {
       "@type": "Brand",

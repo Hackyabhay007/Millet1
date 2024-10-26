@@ -1,3 +1,4 @@
+// src/app/home/page.js
 import { Fragment } from 'react';
 import Head from 'next/head';
 import Contact_form from "./contact/Contact_form";
@@ -11,11 +12,29 @@ import Product_cart from "./Head/Product_cart";
 import Shop_Catalog from "./Head/Shop_Catalog";
 import Why from "./Mid/Why";
 import 'remixicon/fonts/remixicon.css';
-import { Schema } from './schemas';  // We'll create this next
+import { Schema } from './schemas';  // Ensure this contains valid JSON-LD
 
 export default function Home() {
   return (
     <Fragment>
+      {/* SEO Metadata */}
+      <Head>
+        <title>Purikam | Reviving Traditional Agriculture with Organic Products</title>
+        <meta
+          name="description"
+          content="Explore Purikam's organic, millet-based food products. Shop healthy, ready-to-eat meals while empowering local farmers."
+        />
+        <meta
+          name="keywords"
+          content="organic food, millet products, healthy meals, sustainable agriculture, Purikam"
+        />
+        <meta property="og:title" content="Purikam | Organic Millet-Based Food Products" />
+        <meta property="og:description" content="Discover a variety of healthy, organic food products made from millet, supporting local farmers and sustainable practices." />
+        <meta property="og:image" content="/images/home-og-image.jpg" />
+        <meta property="og:url" content=" https://purikam.com/" />
+        <meta name="twitter:card" content="summary_large_image" />
+      </Head>
+
       {/* Structured Data */}
       <script
         type="application/ld+json"
@@ -39,15 +58,14 @@ export default function Home() {
           itemType="https://schema.org/ItemList"
           className=""
         >
-          {/* Top Products */}
-          <div itemProp="itemListElement">
-          <Product_cart  title = "Trending Products" searchKeyword="trending" limit={10} />  
-
-          </div>
-
           {/* Trending Products */}
           <div itemProp="itemListElement">
-<Product_cart title='Popular Products' searchKeyword="popular" limit={10} />  
+            <Product_cart title="Trending Products" searchKeyword="trending" limit={10} />  
+          </div>
+
+          {/* Popular Products */}
+          <div itemProp="itemListElement">
+            <Product_cart title="Popular Products" searchKeyword="popular" limit={10} />  
           </div>
         </section>
 
