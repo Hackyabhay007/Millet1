@@ -12,6 +12,7 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import Loader from '@/app/components/Loader';
 import { toast } from 'react-hot-toast';
+import ReviewComponent from '../components/ReviewComponent';
 
 const ProductDetails = ({ params }) => {
   const { productId, category } = params;
@@ -326,6 +327,7 @@ const handleAddToCart = () => {
             </div>
           </div>
         </div>
+        <ReviewComponent productId={productId} />
   
         {/* Related Products Section */}
         <div className="relative w-full mt-6 sm:mt-8">

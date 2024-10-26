@@ -13,10 +13,10 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">What Do We Do With Your Information?</h2>
           <p>
-            When you purchase something from our store, we collect the personal information you give us such as your name, address, and email address. When you browse our store, we also automatically receive your computer’s internet protocol (IP) address to help us learn about your browser and operating system. 
+            At Purikam Foods, we value your privacy and transparency in how we handle your personal information. When you purchase our organic, millet-based food products, we collect the necessary information such as your name, address, and email to ensure seamless transactions and efficient delivery. When you browse our website, we may also receive information about your device, such as IP address, to help us understand user behavior and improve your experience.
           </p>
           <p>
-            Email marketing (if applicable): With your permission, we may send you emails about our store, new products, and other updates.
+            With your consent, we may send you updates on new products, promotions, and insights into sustainable farming practices that align with our values.
           </p>
         </div>
 
@@ -24,10 +24,10 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Consent</h2>
           <p>
-            How do you get my consent? When you provide us with personal information to complete a transaction, verify your credit card, place an order, arrange for a delivery or return a purchase, we imply that you consent to our collecting it and using it for that specific reason only. If we ask for your personal information for a secondary reason, like marketing, we will either ask you directly for your expressed consent or provide you with an opportunity to say no. 
+            By providing us with personal information during a transaction, such as placing an order or arranging for a delivery, you consent to our collecting and using it for the specified purpose only. For additional uses, like marketing, we will explicitly ask for your consent.
           </p>
           <p>
-            How do I withdraw my consent? If you change your mind after opting in, you may withdraw your consent for us to contact you, for the continued collection, use, or disclosure of your information, at any time, by contacting us at <strong>Near Ajigarha Bypass, Satna Road, Rewa, Madhya Pradesh - 486001, India</strong> or mailing us at <a href="mailto:rewastatefarms@gmail.com" className="text-blue-500 underline">rewastatefarms@gmail.com</a>.
+            To withdraw consent, contact us at <strong>Near Ajigarha Bypass, Satna Road, Rewa, Madhya Pradesh - 486001, India</strong> or email us at <a href="mailto:rewastatefarms@gmail.com" className="text-blue-500 underline">rewastatefarms@gmail.com</a>.
           </p>
         </div>
 
@@ -35,7 +35,7 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Disclosure</h2>
           <p>
-            We may disclose your personal information if we are required by law to do so or if you violate our Terms of Service.
+            We may disclose your personal information only if required by law or if you violate our Terms of Service.
           </p>
         </div>
 
@@ -43,10 +43,7 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Payment</h2>
           <p>
-            We use Razorpay for processing payments. We/Razorpay do not store your card data on their servers. The data is encrypted through the Payment Card Industry Data Security Standard (PCI-DSS) when processing payment. Your purchase transaction data is only used as long as is necessary to complete your purchase transaction. After that is complete, your purchase transaction information is not saved.
-          </p>
-          <p>
-            Our payment gateway adheres to the standards set by PCI-DSS as managed by the PCI Security Standards Council, which is a joint effort of brands like Visa, MasterCard, American Express, and Discover. For more insight, you may also want to read the terms and conditions of Razorpay on <a href="https://razorpay.com" className="text-blue-500 underline">razorpay.com</a>.
+            Purikam Foods processes payments securely through Razorpay, which adheres to PCI-DSS standards to ensure the protection of your card information. Transaction data is only used for completing your purchase and is not stored post-transaction. For more, refer to Razorpay’s privacy policy on <a href="https://razorpay.com" className="text-blue-500 underline">razorpay.com</a>.
           </p>
         </div>
 
@@ -54,10 +51,7 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Third-Party Services</h2>
           <p>
-            In general, the third-party providers used by us will only collect, use, and disclose your information to the extent necessary to allow them to perform the services they provide to us. However, certain third-party service providers, such as payment gateways and other payment transaction processors, have their own privacy policies regarding the information we are required to provide to them for your purchase-related transactions.
-          </p>
-          <p>
-            For these providers, we recommend that you read their privacy policies to understand how your personal information will be handled. Once you leave our store’s website or are redirected to a third-party website or application, you are no longer governed by this Privacy Policy or our website’s Terms of Service.
+            Our third-party service providers, like payment gateways, only access your information to perform necessary functions. We encourage reviewing their privacy policies to understand how your data is handled outside our website. When redirected to a third-party site, this Privacy Policy and our Terms of Service no longer apply.
           </p>
         </div>
 
@@ -65,7 +59,7 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Security</h2>
           <p>
-            To protect your personal information, we take reasonable precautions and follow industry best practices to ensure it is not inappropriately lost, misused, accessed, disclosed, altered, or destroyed.
+            We take reasonable precautions and follow best practices to secure your personal information from unauthorized access, misuse, or loss.
           </p>
         </div>
 
@@ -73,7 +67,7 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Cookies</h2>
           <p>
-            We use cookies to maintain the session of your user. It is not used to personally identify you on other websites.
+            Our website uses cookies to maintain session information for a better user experience. Cookies do not identify you personally across other websites.
           </p>
         </div>
 
@@ -81,7 +75,7 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Age of Consent</h2>
           <p>
-            By using this site, you represent that you are at least the age of majority in your state or province of residence, or that you are the age of majority in your state or province of residence and have given us your consent to allow any of your minor dependents to use this site.
+            By using this site, you represent that you are of legal age in your residence area, or you have the consent of your legal guardian if you are a minor.
           </p>
         </div>
 
@@ -89,7 +83,7 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Changes to This Privacy Policy</h2>
           <p>
-            We reserve the right to modify this privacy policy at any time, so please review it frequently. Changes and clarifications will take effect immediately upon their posting on the website. If we make material changes to this policy, we will notify you here that it has been updated so that you are aware of what information we collect, how we use it, and under what circumstances, if any, we use and/or disclose it. If our store is acquired or merged with another company, your information may be transferred to the new owners so that we may continue to sell products to you.
+            We reserve the right to update this policy as needed. Changes take effect immediately upon posting. If Purikam Foods undergoes a merger or acquisition, your information may transfer to the new owners to continue serving you.
           </p>
         </div>
 
@@ -97,14 +91,14 @@ function Privacy() {
         <div>
           <h2 className="text-2xl font-semibold mb-2">Questions and Contact Information</h2>
           <p>
-            If you would like to access, correct, amend, or delete any personal information we have about you, register a complaint, or simply want more information, contact our Privacy Compliance Officer at <strong>Near Ajigarha Bypass, Satna Road, Rewa, Madhya Pradesh - 486001, India</strong> or by mail at <a href="mailto:rewastatefarms@gmail.com" className="text-blue-500 underline">rewastatefarms@gmail.com</a>.
+            For questions, or to access, correct, or delete your information, please contact us at <strong>Near Ajigarha Bypass, Satna Road, Rewa, Madhya Pradesh - 486001, India</strong> or email <a href="mailto:rewastatefarms@gmail.com" className="text-blue-500 underline">rewastatefarms@gmail.com</a>.
           </p>
         </div>
       </section>
 
       {/* Footer */}
       <footer className="mt-12 text-center">
-        <p className="text-gray-500 text-sm">&copy; 2024 Purikam. All rights reserved.</p>
+        <p className="text-gray-500 text-sm">&copy; 2024 Purikam Foods. All rights reserved.</p>
       </footer>
     </div>
   );
