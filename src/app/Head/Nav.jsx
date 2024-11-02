@@ -1,14 +1,14 @@
 "use client";
 
 import Link from 'next/link';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useContext } from 'react';
 import { auth, db } from '@/app/firebase';
 import { signOut } from 'firebase/auth';
 import { collection, query, getDocs } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import 'remixicon/fonts/remixicon.css';
 import { motion, AnimatePresence } from 'framer-motion';
-
+import { CartContext } from '@/Context/CartContext';
 // SearchResults Component
 const SearchResults = ({ searchQuery, isOpen, onClose }) => {
   const [results, setResults] = useState([]);
@@ -135,6 +135,8 @@ const SearchResults = ({ searchQuery, isOpen, onClose }) => {
 // Main Nav Component
 const Nav = () => {
   const router = useRouter();
+  const { cartItems } = useContext(CartContext);
+  const itemCount = cartItems.reduce((total, item) => total + item.quantity, 0);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -291,9 +293,14 @@ const Nav = () => {
             </AnimatePresence>
           </div>
 
-          <Link href="/Cart" className="text-white hover:scale-150 transition-transform duration-300">
-            <i className="ri-shopping-cart-2-line"></i>
-          </Link>
+          <Link href="/Cart" className="relative text-white hover:scale-150 transition-transform duration-300">
+        <i className="ri-shopping-cart-2-line"></i>
+        {itemCount > 0 && (
+          <span className="absolute top-0 right-0 -mt-1 -mr-2  w-5 h-5 flex items-center justify-center font-bold bg-red-800 text-white text-xs rounded-full">
+            {itemCount}
+          </span>
+        )}
+      </Link>
         </div>
       </div>
 

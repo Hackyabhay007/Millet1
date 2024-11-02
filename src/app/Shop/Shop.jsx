@@ -208,7 +208,7 @@ function Shop() {
                 <div className="flex flex-col flex-grow p-0 text-center">
                   <p className="text-lg font-semibold">{product.name}</p>
                   <p className="text-gray-500 font-semibold pb-2">Price: ₹{product.price}</p>
-                  <p className="text-gray-500 pb-2">{product.description}</p>
+                  {/* <p className="text-gray-500 pb-2">{product.description}</p> */}
 
                   <AnimatePresence>
                     {clickedItemId === product.id && (
