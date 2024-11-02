@@ -296,7 +296,7 @@ const Nav = () => {
           <Link href="/Cart" className="relative text-white hover:scale-150 transition-transform duration-300">
         <i className="ri-shopping-cart-2-line"></i>
         {itemCount > 0 && (
-          <span className="absolute top-0 right-0 -mt-1 -mr-2  w-5 h-5 flex items-center justify-center font-bold bg-red-800 text-white text-xs rounded-full">
+          <span className="absolute top-0 right-0 -mt-1 -mr-2  w-5 h-5 flex items-center justify-center font-bold bg-red-700 border-2 border-white text-white text-xs rounded-full">
             {itemCount}
           </span>
         )}
