@@ -49,35 +49,36 @@ const ProductDetails = ({ params }) => {
 
   useEffect(() => {
     const fetchProductDetails = async () => {
-        if (!productId) return;
-
-        try {
-            const productRef = doc(db, 'products', productId);
-            const productSnap = await getDoc(productRef);
-
-            if (productSnap.exists()) {
-                const productData = productSnap.data();
-                // Ensure to add the id from the document reference
-                setProduct({
-                    id: productId, // Use the productId passed to this component
-                    name: productData.name || '',
-                    price: typeof productData.price === 'number' ? productData.price : 0,
-                    stock: typeof productData.stock === 'number' ? productData.stock : 0,
-                    mainImage: productData.mainImage || '',
-                });
-                setSelectedImage(productData.mainImage);
-                await fetchCategoryAndTagNames(productData);
-                await fetchRelatedProducts(productData);
-            } else {
-                setError('No such product found!');
-            }
-        } catch (error) {
-            console.error('Error fetching product:', error);
-            setError('Error fetching product details. Please try again later.');
-        } finally {
-            setLoading(false);
+      if (!productId) return;
+    
+      try {
+        const productRef = doc(db, 'products', productId);
+        const productSnap = await getDoc(productRef);
+    
+        if (productSnap.exists()) {
+          const productData = productSnap.data();
+          setProduct({
+            id: productId,
+            name: productData.name || '',
+            price: typeof productData.price === 'number' ? productData.price : 0,
+            stock: typeof productData.stock === 'number' ? productData.stock : 0,
+            mainImage: productData.mainImage || '',
+            additionalImages: productData.additionalImages || [], // Add additional images here
+          });
+          setSelectedImage(productData.mainImage);
+          await fetchCategoryAndTagNames(productData);
+          await fetchRelatedProducts(productData);
+        } else {
+          setError('No such product found!');
         }
+      } catch (error) {
+        console.error('Error fetching product:', error);
+        setError('Error fetching product details. Please try again later.');
+      } finally {
+        setLoading(false);
+      }
     };
+    
 
     fetchProductDetails();
 }, [productId]);
@@ -223,13 +224,17 @@ const handleAddToCart = () => {
       <div className="p-4 sm:p-6 font-afacadFlux bg-gray-100">
         {/* Main Product Container */}
         <div className="max-w-4xl mx-auto bg-white p-4 sm:p-6 rounded-lg shadow-lg flex flex-col md:flex-row">
+          
           {/* Left Side: Product Image Selector */}
           <div className="w-full md:w-1/2 mb-6 md:mb-0">
+            {/* Main Image */}
             <img
               src={selectedImage}
               alt={product.name}
               className="w-full h-auto object-contain border-2 border-green-500 rounded-lg mb-4"
             />
+  
+            {/* Additional Images Gallery */}
             {product.additionalImages && product.additionalImages.length > 0 && (
               <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-4 sm:mb-6">
                 {product.additionalImages.map((image, index) => (
@@ -238,7 +243,7 @@ const handleAddToCart = () => {
                     src={image}
                     alt={`Additional Image ${index + 1}`}
                     className="w-full p-1 sm:p-2 h-auto border border-green-500 object-cover rounded-lg cursor-pointer hover:border-green-700"
-                    onClick={() => setSelectedImage(image)}
+                    onClick={() => setSelectedImage(image)} // Set the selected image on click
                   />
                 ))}
               </div>
@@ -332,43 +337,20 @@ const handleAddToCart = () => {
         {/* Related Products Section */}
         <div className="relative w-full mt-6 sm:mt-8">
           <h2 className="text-xl sm:text-2xl font-semibold mb-4 px-4 sm:px-0">Related Products</h2>
-          
           {loadingRelated ? (
             <p className="text-gray-500 px-4">Loading related products...</p>
           ) : (
             <div className="relative group px-4 sm:px-0">
-              {/* Left Arrow - Hidden on mobile */}
-              <button
-                onClick={() => scroll('left')}
-                className="hidden sm:block absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 bg-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full p-2 shadow-md border border-gray-200 hover:bg-gray-50"
-              >
-                <i className="ri-arrow-left-s-line text-xl"></i>
-              </button>
-  
               {/* Scrollable Container */}
-              <div 
-                ref={scrollContainer}
-                className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0"
-                style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-              >
+              <div ref={scrollContainer} className="flex overflow-x-auto gap-3 sm:gap-4 pb-4 scrollbar-hide -mx-4 sm:mx-0 px-4 sm:px-0">
                 {relatedProducts.length > 0 ? (
                   relatedProducts.map((relatedProduct) => (
-                    <div
-                      key={relatedProduct.id}
-                      className="flex-none w-48 sm:w-64 aspect-square cursor-pointer transition-transform hover:scale-105"
-                      onClick={() => handleRelatedProductClick(relatedProduct.id)}
-                    >
+                    <div key={relatedProduct.id} className="flex-none w-48 sm:w-64 aspect-square cursor-pointer transition-transform hover:scale-105" onClick={() => handleRelatedProductClick(relatedProduct.id)}>
                       <div className="h-full bg-white border rounded-lg p-2 sm:p-4 shadow-md flex flex-col">
                         <div className="relative flex-1 mb-2">
-                          <img
-                            src={relatedProduct.mainImage}
-                            alt={relatedProduct.name}
-                            className="absolute inset-0 w-full h-full object-cover rounded-md"
-                          />
+                          <img src={relatedProduct.mainImage} alt={relatedProduct.name} className="absolute inset-0 w-full h-full object-cover rounded-md" />
                         </div>
-                        <h3 className="text-base sm:text-lg font-semibold truncate">
-                          {relatedProduct.name}
-                        </h3>
+                        <h3 className="text-base sm:text-lg font-semibold truncate">{relatedProduct.name}</h3>
                         <p className="text-sm text-gray-600">₹{relatedProduct.price}</p>
                       </div>
                     </div>
@@ -377,14 +359,6 @@ const handleAddToCart = () => {
                   <p className="text-gray-500">No related products found.</p>
                 )}
               </div>
-  
-              {/* Right Arrow - Hidden on mobile */}
-              <button
-                onClick={() => scroll('right')}
-                className="hidden sm:block absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 bg-white opacity-0 group-hover:opacity-100 transition-opacity rounded-full p-2 shadow-md border border-gray-200 hover:bg-gray-50"
-              >
-                <i className="ri-arrow-right-s-line text-xl"></i>
-              </button>
             </div>
           )}
         </div>
@@ -392,6 +366,7 @@ const handleAddToCart = () => {
       <Footer />
     </>
   );
+  
 };
 
 export default ProductDetails;
