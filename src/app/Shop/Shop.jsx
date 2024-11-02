@@ -2,7 +2,7 @@
 "use client";
 import React, { useState, useEffect, useContext } from 'react';
 import { db } from '../firebase';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, limit,startAfter } from 'firebase/firestore';
 import { useRouter } from 'next/navigation';
 import { CartContext } from '@/Context/CartContext';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -19,8 +19,8 @@ function Shop() {
   const [loading, setLoading] = useState(true); // Loading state
   const router = useRouter();
   const [currentPage, setCurrentPage] = useState(1);
-  const productsPerPage = 10; // Display 10 products per page
-  
+  const productsPerPage = 10;
+
   // Apply filters and sort products
   const filteredProducts = products
     .filter((product) => {
@@ -34,25 +34,30 @@ function Shop() {
       if (sortOrder === 'high-to-low') return b.price - a.price;
       return 0;
     });
-  
+
   // Calculate paginated products based on current page
   const indexOfLastProduct = currentPage * productsPerPage;
   const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
   const paginatedProducts = filteredProducts.slice(indexOfFirstProduct, indexOfLastProduct);
-  
+
   // Handle Next and Previous Page
   const handleNextPage = () => {
     setCurrentPage((prevPage) => Math.min(prevPage + 1, Math.ceil(filteredProducts.length / productsPerPage)));
   };
-  
+
   const handlePrevPage = () => {
     setCurrentPage((prevPage) => Math.max(prevPage - 1, 1));
   };
-  
 
+  // Handle Page Number Click
+  const handlePageClick = (page) => {
+    setCurrentPage(page);
+  };
+
+  // Fetch Products
   useEffect(() => {
     const fetchProducts = async () => {
-      setLoading(true); // Set loading to true before fetching
+      setLoading(true);
       let productQuery = collection(db, 'products');
 
       // Check if a category is selected in the URL
@@ -67,7 +72,7 @@ function Shop() {
         ...doc.data(),
       }));
       setProducts(productList);
-      setLoading(false); // Set loading to false after fetching
+      setLoading(false);
     };
 
     fetchProducts();
@@ -80,6 +85,7 @@ function Shop() {
     }
   }, [router.query?.category]);
 
+  // Fetch Categories
   useEffect(() => {
     const fetchCategories = async () => {
       const categoriesCollection = collection(db, 'categories');
@@ -94,6 +100,7 @@ function Shop() {
     fetchCategories();
   }, []);
 
+  // Fetch Tags
   useEffect(() => {
     const fetchTags = async () => {
       const tagsCollection = collection(db, 'tags');
@@ -120,11 +127,13 @@ function Shop() {
       ...prevFilters,
       [name]: type === 'checkbox' ? checked : value,
     }));
+    setCurrentPage(1); // Reset to first page on filter change
   };
 
   const handleResetFilter = () => {
     setFilters({ onSale: false, inStock: false, category: '' });
     setSortOrder('');
+    setCurrentPage(1);
   };
 
   const handleSortChange = (e) => {
@@ -134,6 +143,9 @@ function Shop() {
   const handleProductClick = (productId) => {
     router.push(`/Shop/${productId}`);
   };
+
+  // Calculate total pages based on filtered products
+  const totalPages = Math.ceil(filteredProducts.length / productsPerPage);
 
   // const filteredProducts = products
   //   .filter((product) => {
@@ -220,93 +232,102 @@ function Shop() {
 
 
 {loading ? (
-      <Loader />
-    ) : filteredProducts.length > 0 ? (
-      <div className="grid grid-cols-2 font-afacadFlux gap-6 md:grid-cols-3 lg:grid-cols-5">
-        {paginatedProducts.map((product) => (
-          <div
-            key={product.id}
-            className="flex flex-col bg-green-100 cursor-pointer rounded-xl shadow shadow-gray-500 overflow-hidden"
-            onClick={() => handleProductClick(product.id)}
-          >
-            <div className="h-52 hover:scale-105 transition-transform duration-300 w-full overflow-hidden">
-              <img
-                src={product.mainImage}
-                alt={product.productName}
-                className="w-full h-full object-cover rounded-t-xl"
-              />
-            </div>
-            <div className="flex flex-col flex-grow p-0 text-center">
-              <p className="text-lg font-semibold">{product.name}</p>
-              <p className="text-gray-500 font-semibold pb-2">Price: ₹{product.price}</p>
-              
-              <AnimatePresence>
-                {clickedItemId === product.id && (
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.8 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.8 }}
-                    transition={{ duration: 0.3 }}
-                    className="fixed inset-0 flex items-center justify-center z-50"
-                  >
-                    <div className="bg-white rounded-lg p-6 text-center">
-                      <p className="text-xl font-semibold mb-2">Added to Cart!</p>
-                      <button
-                        onClick={() => setClickedItemId(null)}
-                        className="bg-green-500 text-white py-2 px-4 rounded mt-4"
-                      >
-                        Continue Shopping
-                      </button>
-                    </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+  <Loader />
+) : paginatedProducts.length > 0 ? (
+  <div className="grid grid-cols-2 font-afacadFlux gap-6 md:grid-cols-3 lg:grid-cols-5">
+    {paginatedProducts.map((product) => (
+      <div
+        key={product.id}
+        className="flex flex-col bg-green-100 cursor-pointer rounded-xl shadow shadow-gray-500 overflow-hidden"
+        onClick={() => handleProductClick(product.id)}
+      >
+        <div className="h-52 hover:scale-105 transition-transform duration-300 w-full overflow-hidden">
+          <img
+            src={product.mainImage}
+            alt={product.productName}
+            className="w-full h-full object-cover rounded-t-xl"
+          />
+        </div>
+        <div className="flex flex-col flex-grow p-0 text-center">
+          <p className="text-lg font-semibold">{product.name}</p>
+          <p className="text-gray-500 font-semibold pb-2">Price: ₹{product.price}</p>
 
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleAddToCart(product);
-                }}
-                className="mt-auto text-white px-4 py-2 font-semibold rounded-b transition-transform bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-opacity-50"
-                style={{
-                  transition: 'background-color 0.5s ease, transform 0.5s ease',
-                }}
+          <AnimatePresence>
+            {clickedItemId === product.id && (
+              <motion.div
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.8 }}
+                transition={{ duration: 0.3 }}
+                className="fixed inset-0 flex items-center justify-center z-50"
               >
-                Add to Cart
-              </button>
-            </div>
-          </div>
-        ))}
-      </div>
-    ) : (
-      <div className="text-center">
-        {filters.category ? (
-          <p>No products found for the selected category.</p>
-        ) : (
-          <p>No products found.</p>
-        )}
-      </div>
-    )}
+                <div className="bg-white rounded-lg p-6 text-center">
+                  <p className="text-xl font-semibold mb-2">Added to Cart!</p>
+                  <button
+                    onClick={() => setClickedItemId(null)}
+                    className="bg-green-500 text-white py-2 px-4 rounded mt-4"
+                  >
+                    Continue Shopping
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-    {/* Pagination Controls */}
-    {filteredProducts.length > productsPerPage && (
-      <div className="flex justify-center mt-4 space-x-4">
-        <button
-          onClick={handlePrevPage}
-          disabled={currentPage === 1}
-          className="bg-green-600 text-white font-bold px-4 py-2 rounded disabled:opacity-50"
-        >
-          Previous
-        </button>
-        <button
-          onClick={handleNextPage}
-          disabled={currentPage === Math.ceil(filteredProducts.length / productsPerPage)}
-          className="bg-green-600 text-white font-bold px-4 py-2 rounded disabled:opacity-50"
-        >
-          Next
-        </button>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              handleAddToCart(product);
+            }}
+            className="mt-auto text-white px-4 py-2 font-semibold rounded-b transition-transform bg-green-500 focus:outline-none focus:ring-2 focus:ring-green-300 focus:ring-opacity-50"
+            style={{
+              transition: 'background-color 0.5s ease, transform 0.5s ease',
+            }}
+          >
+            Add to Cart
+          </button>
+        </div>
       </div>
-    )}
+    ))}
+  </div>
+) : (
+  <div className="text-center">
+    <p>No products found.</p>
+  </div>
+)}
+
+
+{/* Pagination Controls */}
+{totalPages > 1 && (
+  <div className="flex justify-center mt-4 space-x-2">
+    <button
+      onClick={handlePrevPage}
+      disabled={currentPage === 1}
+      className="bg-green-600 text-white font-bold px-4 py-2 rounded disabled:opacity-50"
+    >
+      Previous
+    </button>
+    {Array.from({ length: totalPages }, (_, i) => (
+      <button
+        key={i + 1}
+        onClick={() => handlePageClick(i + 1)}
+        className={`${
+          currentPage === i + 1 ? 'bg-green-800' : 'bg-green-600'
+        } text-white font-bold px-4 py-2 rounded`}
+      >
+        {i + 1}
+      </button>
+    ))}
+    <button
+      onClick={handleNextPage}
+      disabled={currentPage === totalPages}
+      className="bg-green-600 text-white font-bold px-4 py-2 rounded disabled:opacity-50"
+    >
+      Next
+    </button>
+  </div>
+)}
+
       </div>
     </div>
   );
